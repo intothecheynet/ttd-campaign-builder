@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTD Campaign Builder</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .file-input-wrapper {
+      position: relative;
+      border: 2px dashed #d0d5dd;
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: #fafafa;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .file-input-wrapper:hover {
+      border-color: #0066cc;
+    }
+    .file-input-wrapper input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .file-label {
+      font-size: 14px;
+      color: #666;
+    }
+    .file-label span {
+      color: #0066cc;
+      font-weight: 500;
+    }
+    .file-name {
+      font-size: 13px;
+      color: #1a7f37;
+      font-weight: 500;
+      display: none;
+    }
+    button[type="submit"] {
+      width: 100%;
+      padding: 14px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    button[type="submit"]:hover:not(:disabled) {
+      background: #0052a3;
+    }
+    button[type="submit"]:disabled {
+      background: #99bbdd;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .status.loading {
+      background: #fff8e1;
+      color: #856404;
+      border: 1px solid #ffc107;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .status.success {
+      background: #e6f4ea;
+      color: #1a7f37;
+      border: 1px solid #34a853;
+    }
+    .status.error {
+      background: #fce8e8;
+      color: #c62828;
+      border: 1px solid #e53935;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ffc107;
+      border-top-color: #856404;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 28px 0;
+    }
+    .dsps {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .dsp-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .dsp-badge.active {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+    .dsp-badge.coming-soon {
+      background: #f1f3f4;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>TTD Campaign Bulk Upload Generator</h1>
+    <p class="subtitle">Upload your 4 media files and get a ready-to-import TTD bulk sheet</p>
+
+    <div class="dsps">
+      <span class="dsp-badge active">The Trade Desk</span>
+      <span class="dsp-badge coming-soon">DV360 (soon)</span>
+      <span class="dsp-badge coming-soon">Amazon DSP (soon)</span>
+    </div>
+
+    <form id="uploadForm">
+      <div class="form-group">
+        <label>Media Brief</label>
+        <div class="file-input-wrapper" id="wrapper-brief">
+          <input type="file" name="media_brief" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-brief')">
+          <div class="file-label" id="label-brief-placeholder">
+            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
+          </div>
+          <div class="file-name" id="label-brief"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Media Plan</label>
+        <div class="file-input-wrapper">
+          <input type="file" name="media_plan" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-plan')">
+          <div class="file-label" id="label-plan-placeholder">
+            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
+          </div>
+          <div class="file-name" id="label-plan"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Audience Matrix</label>
+        <div class="file-input-wrapper">
+          <input type="file" name="audience_matrix" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-audience')">
+          <div class="file-label" id="label-audience-placeholder">
+            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
+          </div>
+          <div class="file-name" id="label-audience"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Trafficking Sheet</label>
+        <div class="file-input-wrapper">
+          <input type="file" name="trafficking_sheet" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-trafficking')">
+          <div class="file-label" id="label-trafficking-placeholder">
+            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
+          </div>
+          <div class="file-name" id="label-trafficking"></div>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn">Generate TTD Bulk Upload Sheet</button>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    function updateLabel(input, labelId) {
+      const label = document.getElementById(labelId);
+      const placeholder = document.getElementById(labelId + '-placeholder');
+      if (input.files[0]) {
+        label.textContent = '✓ ' + input.files[0].name;
+        label.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+      }
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const status = document.getElementById('status');
+
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      status.className = 'status loading';
+      status.style.display = 'flex';
+      status.innerHTML = '<div class="spinner"></div> Processing with AI — this takes 30–60 seconds…';
+
+      try {
+        const formData = new FormData(e.target);
+        const response = await fetch('/generate', { method: 'POST', body: formData });
+
+        if (!response.ok) {
+          const err = await response.text();
+          throw new Error(err || `Server error ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'TTD_Campaign_Bulk_Upload.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        status.className = 'status success';
+        status.innerHTML = '✓ Your TTD bulk upload sheet has been downloaded.';
+      } catch (err) {
+        status.className = 'status error';
+        status.textContent = 'Error: ' + err.message;
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Generate TTD Bulk Upload Sheet';
+    });
+  </script>
+</body>
+</html>
