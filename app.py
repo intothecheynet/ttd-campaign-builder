@@ -11,6 +11,13 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 client = anthropic.Anthropic()
 
+DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "defaults.json")
+
+
+def load_defaults() -> dict:
+    with open(DEFAULTS_PATH) as f:
+        return json.load(f)
+
 TTD_TEMPLATE_PATH = os.path.expanduser("~/Downloads/TTD BULKSHEET.xlsx")
 
 TTD_SCHEMA = {
@@ -119,6 +126,8 @@ async def generate_ttd(
         content = await upload.read()
         files_data[label] = excel_to_dict(content)
 
+    defaults = load_defaults()
+
     prompt = f"""Here is the data extracted from the 4 input files:
 
 {json.dumps(files_data, indent=2, default=str)}
@@ -134,16 +143,24 @@ Map this to the TTD bulk upload format. Return a JSON object with exactly these 
 TTD field names to use (skip any marked [Read Only]):
 {json.dumps(TTD_SCHEMA, indent=2)}
 
+DEFAULT VALUES — use these when a field cannot be found in the source documents.
+Apply in this priority order (most specific wins):
+1. global — applies to everything
+2. by_channel — applies when channel is known
+3. by_lob — applies when line of business is known
+4. by_lob_and_channel — most specific, overrides all others when both LOB and channel are known
+
+{json.dumps(defaults, indent=2)}
+
 Field mapping guidance:
 - Skip all fields marked [Read Only] — TTD populates these automatically
-- Time Zone ID: use "Eastern Time (US & Canada)" unless specified otherwise
-- Pacing Mode: "Even" unless otherwise specified
 - Dates (Start Date Inclusive UTC / End Date Exclusive UTC): format as "YYYY-MM-DD 00:00:00"
 - Goal Type: map KPIs to TTD values (e.g. CPC, CPM, CPA, ROAS, VCR)
 - Base Bid / Max Bid: dollar amounts in CPM
 - Action (Budget Flights): "New" for new line items
 - Each line in the Media Plan that targets TTD should become its own Ad Group and Budget Flight row
 - Use audience segment names from the Audience Matrix in the Ad Group Audience field
+- When a field is missing from source documents, use the most specific matching default above
 
 Return ONLY valid JSON with no markdown, no explanation."""
 

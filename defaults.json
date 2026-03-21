@@ -1,0 +1,162 @@
+{
+  "_instructions": "Defaults are applied in order: global → by_channel → by_lob → by_lob_and_channel (most specific wins).",
+
+  "global": {
+    "Time Zone ID": "Eastern Time (US & Canada)",
+    "Pacing Mode": "Even",
+    "Action": "New",
+    "Priority": "Medium",
+    "Manually Prioritize Ad Groups": "No",
+    "Predictive Clearing Enabled": "Yes",
+    "Auto Enable Upcoming Features": "No"
+  },
+
+  "by_channel": {
+    "CTV": {
+      "Goal Type": "VCR",
+      "Goal Value": 0.80,
+      "Base Bid": 25.00,
+      "Max Bid": 50.00,
+      "Marketplace": "Private Marketplace",
+      "Primary Channel": "Video",
+      "Objective": "Awareness"
+    },
+    "OLV": {
+      "Goal Type": "VCR",
+      "Goal Value": 0.70,
+      "Base Bid": 12.00,
+      "Max Bid": 25.00,
+      "Marketplace": "Open Exchange",
+      "Primary Channel": "Video",
+      "Objective": "Awareness"
+    },
+    "Display": {
+      "Goal Type": "CTR",
+      "Goal Value": 0.10,
+      "Base Bid": 4.00,
+      "Max Bid": 8.00,
+      "Marketplace": "Open Exchange",
+      "Primary Channel": "Display",
+      "Objective": "Consideration"
+    },
+    "Native": {
+      "Goal Type": "CTR",
+      "Goal Value": 0.08,
+      "Base Bid": 3.00,
+      "Max Bid": 6.00,
+      "Marketplace": "Open Exchange",
+      "Primary Channel": "Native",
+      "Objective": "Consideration"
+    },
+    "Audio": {
+      "Goal Type": "CPM",
+      "Goal Value": 8.00,
+      "Base Bid": 8.00,
+      "Max Bid": 15.00,
+      "Marketplace": "Open Exchange",
+      "Primary Channel": "Audio",
+      "Objective": "Awareness"
+    },
+    "DOOH": {
+      "Goal Type": "CPM",
+      "Goal Value": 5.00,
+      "Base Bid": 5.00,
+      "Max Bid": 12.00,
+      "Marketplace": "Private Marketplace",
+      "Primary Channel": "Display",
+      "Objective": "Awareness"
+    }
+  },
+
+  "by_lob": {
+    "Auto": {
+      "Objective": "Awareness",
+      "Goals": "VCR",
+      "Pacing Mode": "Even"
+    },
+    "Retail": {
+      "Objective": "Conversion",
+      "Goals": "CPA",
+      "Pacing Mode": "Even"
+    },
+    "Financial": {
+      "Objective": "Consideration",
+      "Goals": "CTR",
+      "Pacing Mode": "Even"
+    },
+    "Healthcare": {
+      "Objective": "Awareness",
+      "Goals": "CPM",
+      "Pacing Mode": "Even"
+    },
+    "CPG": {
+      "Objective": "Awareness",
+      "Goals": "VCR",
+      "Pacing Mode": "Even"
+    },
+    "Tech": {
+      "Objective": "Consideration",
+      "Goals": "CTR",
+      "Pacing Mode": "Even"
+    }
+  },
+
+  "by_lob_and_channel": {
+    "Auto": {
+      "CTV": {
+        "Goal Type": "VCR",
+        "Goal Value": 0.85,
+        "Base Bid": 28.00,
+        "Max Bid": 55.00
+      },
+      "Display": {
+        "Goal Type": "CTR",
+        "Goal Value": 0.08,
+        "Base Bid": 3.50,
+        "Max Bid": 7.00
+      }
+    },
+    "Retail": {
+      "CTV": {
+        "Goal Type": "VCR",
+        "Goal Value": 0.75,
+        "Base Bid": 22.00,
+        "Max Bid": 45.00
+      },
+      "Display": {
+        "Goal Type": "CPC",
+        "Goal Value": 1.50,
+        "Base Bid": 4.50,
+        "Max Bid": 9.00
+      }
+    },
+    "Financial": {
+      "Display": {
+        "Goal Type": "CPC",
+        "Goal Value": 2.00,
+        "Base Bid": 5.00,
+        "Max Bid": 10.00
+      },
+      "Native": {
+        "Goal Type": "CPC",
+        "Goal Value": 1.75,
+        "Base Bid": 4.00,
+        "Max Bid": 8.00
+      }
+    },
+    "Healthcare": {
+      "CTV": {
+        "Goal Type": "VCR",
+        "Goal Value": 0.80,
+        "Base Bid": 30.00,
+        "Max Bid": 60.00
+      },
+      "Display": {
+        "Goal Type": "CTR",
+        "Goal Value": 0.07,
+        "Base Bid": 4.00,
+        "Max Bid": 8.00
+      }
+    }
+  }
+}
