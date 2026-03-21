@@ -1,8 +1,10 @@
 import os
 import json
 import io
+import uuid
+from datetime import datetime
 from fastapi import FastAPI, UploadFile, File, Request
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 import anthropic
 import openpyxl
@@ -11,14 +13,12 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 client = anthropic.Anthropic()
 
-DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "defaults.json")
-
-
-def load_defaults() -> dict:
-    with open(DEFAULTS_PATH) as f:
-        return json.load(f)
-
 TTD_TEMPLATE_PATH = os.path.expanduser("~/Downloads/TTD BULKSHEET.xlsx")
+DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "defaults.json")
+FEEDBACK_PATH = os.path.join(os.path.dirname(__file__), "feedback.json")
+
+# In-memory session store: session_id -> source_data
+sessions = {}
 
 TTD_SCHEMA = {
     "CampaignSets": [
@@ -52,8 +52,31 @@ You will receive data from 4 Excel input files:
 Map this data to the TTD bulk upload format and return valid JSON only."""
 
 
+def load_defaults() -> dict:
+    with open(DEFAULTS_PATH) as f:
+        return json.load(f)
+
+
+def load_feedback() -> list:
+    if not os.path.exists(FEEDBACK_PATH):
+        return []
+    with open(FEEDBACK_PATH) as f:
+        data = json.load(f)
+    return data.get("rules", [])
+
+
+def save_feedback_rule(rule: dict):
+    if os.path.exists(FEEDBACK_PATH):
+        with open(FEEDBACK_PATH) as f:
+            data = json.load(f)
+    else:
+        data = {"rules": []}
+    data["rules"].append(rule)
+    with open(FEEDBACK_PATH, "w") as f:
+        json.dump(data, f, indent=2)
+
+
 def excel_to_dict(file_bytes: bytes) -> dict:
-    """Convert Excel file bytes to a dict of sheets -> rows."""
     wb = openpyxl.load_workbook(io.BytesIO(file_bytes), data_only=True)
     result = {}
     for sheet_name in wb.sheetnames:
@@ -73,7 +96,6 @@ def excel_to_dict(file_bytes: bytes) -> dict:
 
 
 def create_ttd_excel(ttd_data: dict) -> bytes:
-    """Write mapped data into the TTD bulk upload template."""
     with open(TTD_TEMPLATE_PATH, "rb") as f:
         wb = openpyxl.load_workbook(io.BytesIO(f.read()))
 
@@ -103,32 +125,25 @@ def create_ttd_excel(ttd_data: dict) -> bytes:
     return output.read()
 
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
-@app.post("/generate")
-async def generate_ttd(
-    media_brief: UploadFile = File(...),
-    media_plan: UploadFile = File(...),
-    audience_matrix: UploadFile = File(...),
-    trafficking_sheet: UploadFile = File(...)
-):
-    # Read and parse all 4 input files
-    files_data = {}
-    for label, upload in [
-        ("Media Brief", media_brief),
-        ("Media Plan", media_plan),
-        ("Audience Matrix", audience_matrix),
-        ("Trafficking Sheet", trafficking_sheet),
-    ]:
-        content = await upload.read()
-        files_data[label] = excel_to_dict(content)
-
+def build_mapping_prompt(files_data: dict, extra_instruction: str = "") -> str:
     defaults = load_defaults()
+    feedback_rules = load_feedback()
 
-    prompt = f"""Here is the data extracted from the 4 input files:
+    feedback_section = ""
+    if feedback_rules:
+        feedback_section = f"""
+LEARNED CORRECTIONS — apply these rules. They were confirmed correct by a human reviewer:
+{json.dumps(feedback_rules, indent=2)}
+"""
+
+    revision_section = ""
+    if extra_instruction:
+        revision_section = f"""
+REVISION REQUEST — the human reviewer flagged the following issue with the previous output. Fix it:
+"{extra_instruction}"
+"""
+
+    return f"""Here is the data extracted from the 4 input files:
 
 {json.dumps(files_data, indent=2, default=str)}
 
@@ -143,27 +158,30 @@ Map this to the TTD bulk upload format. Return a JSON object with exactly these 
 TTD field names to use (skip any marked [Read Only]):
 {json.dumps(TTD_SCHEMA, indent=2)}
 
-DEFAULT VALUES — use these when a field cannot be found in the source documents.
-Apply in this priority order (most specific wins):
-1. global — applies to everything
-2. by_channel — applies when channel is known
-3. by_lob — applies when line of business is known
-4. by_lob_and_channel — most specific, overrides all others when both LOB and channel are known
-
+DEFAULT VALUES — use when a field cannot be found in the source documents (most specific wins):
 {json.dumps(defaults, indent=2)}
-
+{feedback_section}{revision_section}
 Field mapping guidance:
-- Skip all fields marked [Read Only] — TTD populates these automatically
+- Skip all fields marked [Read Only]
 - Dates (Start Date Inclusive UTC / End Date Exclusive UTC): format as "YYYY-MM-DD 00:00:00"
-- Goal Type: map KPIs to TTD values (e.g. CPC, CPM, CPA, ROAS, VCR)
+- Goal Type: map KPIs to TTD values (CPC, CPM, CPA, ROAS, VCR)
 - Base Bid / Max Bid: dollar amounts in CPM
 - Action (Budget Flights): "New" for new line items
-- Each line in the Media Plan that targets TTD should become its own Ad Group and Budget Flight row
+- Each TTD line in the Media Plan becomes its own Ad Group and Budget Flight row
 - Use audience segment names from the Audience Matrix in the Ad Group Audience field
-- When a field is missing from source documents, use the most specific matching default above
 
 Return ONLY valid JSON with no markdown, no explanation."""
 
+
+def parse_claude_json(response_text: str) -> dict:
+    if "```json" in response_text:
+        response_text = response_text.split("```json")[1].split("```")[0].strip()
+    elif "```" in response_text:
+        response_text = response_text.split("```")[1].split("```")[0].strip()
+    return json.loads(response_text)
+
+
+def call_claude(prompt: str) -> dict:
     response = client.messages.create(
         model="claude-opus-4-6",
         max_tokens=16000,
@@ -171,16 +189,87 @@ Return ONLY valid JSON with no markdown, no explanation."""
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": prompt}]
     )
-
     response_text = next(b.text for b in response.content if b.type == "text")
+    return parse_claude_json(response_text)
 
-    # Strip markdown code fences if present
-    if "```json" in response_text:
-        response_text = response_text.split("```json")[1].split("```")[0].strip()
-    elif "```" in response_text:
-        response_text = response_text.split("```")[1].split("```")[0].strip()
 
-    ttd_data = json.loads(response_text)
+# ── Routes ──────────────────────────────────────────────────────────────────
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/generate")
+async def generate_ttd(
+    media_brief: UploadFile = File(...),
+    media_plan: UploadFile = File(...),
+    audience_matrix: UploadFile = File(...),
+    trafficking_sheet: UploadFile = File(...)
+):
+    files_data = {}
+    for label, upload in [
+        ("Media Brief", media_brief),
+        ("Media Plan", media_plan),
+        ("Audience Matrix", audience_matrix),
+        ("Trafficking Sheet", trafficking_sheet),
+    ]:
+        content = await upload.read()
+        files_data[label] = excel_to_dict(content)
+
+    ttd_data = call_claude(build_mapping_prompt(files_data))
+
+    session_id = str(uuid.uuid4())
+    sessions[session_id] = files_data
+
+    return JSONResponse({"session_id": session_id, "ttd_data": ttd_data})
+
+
+@app.post("/revise")
+async def revise_ttd(request: Request):
+    body = await request.json()
+    session_id = body["session_id"]
+    revision_request = body["revision_request"]
+    files_data = sessions.get(session_id, {})
+
+    ttd_data = call_claude(build_mapping_prompt(files_data, extra_instruction=revision_request))
+
+    # Ask Claude to extract a generalizable rule from this correction
+    rule_response = client.messages.create(
+        model="claude-opus-4-6",
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": f"""A human reviewer corrected a TTD campaign mapping with this instruction:
+"{revision_request}"
+
+Extract a short, generalizable rule from this correction that can be applied to future campaigns.
+Return a JSON object with these fields:
+- rule: one-sentence rule (e.g. "CTV ad groups should always use VCR as Goal Type")
+- field: the TTD field it applies to (e.g. "Goal Type")
+- channel: channel it applies to, or "all" if universal
+- lob: line of business it applies to, or "all" if universal
+
+Return ONLY valid JSON, no markdown."""
+        }]
+    )
+
+    try:
+        rule_text = next(b.text for b in rule_response.content if b.type == "text")
+        rule = parse_claude_json(rule_text)
+        rule["date"] = datetime.now().strftime("%Y-%m-%d")
+        rule["original_instruction"] = revision_request
+        save_feedback_rule(rule)
+    except Exception:
+        pass  # Don't fail the revision if rule extraction fails
+
+    return JSONResponse({"ttd_data": ttd_data})
+
+
+@app.post("/export")
+async def export_ttd(request: Request):
+    body = await request.json()
+    ttd_data = body["ttd_data"]
     excel_bytes = create_ttd_excel(ttd_data)
 
     return StreamingResponse(

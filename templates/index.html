@@ -10,268 +10,509 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f0f2f5;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+      padding: 32px 20px;
+      color: #1a1a2e;
     }
+    .container { max-width: 900px; margin: 0 auto; }
+
+    /* ── Header ── */
+    .header { margin-bottom: 28px; }
+    .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .header p { color: #666; font-size: 14px; }
+    .dsps { display: flex; gap: 8px; margin-top: 12px; }
+    .dsp-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .dsp-badge.active { background: #e8f0fe; color: #1a73e8; }
+    .dsp-badge.soon { background: #f1f3f4; color: #999; }
+
+    /* ── Steps ── */
+    .steps { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #999; }
+    .step.active { color: #1a73e8; font-weight: 600; }
+    .step.done { color: #1a7f37; }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      background: #ddd; color: #666;
+      flex-shrink: 0;
+    }
+    .step.active .step-num { background: #1a73e8; color: white; }
+    .step.done .step-num { background: #1a7f37; color: white; }
+    .step-divider { flex: 1; height: 1px; background: #ddd; margin: 0 12px; }
+
+    /* ── Card ── */
     .card {
       background: white;
       border-radius: 12px;
-      padding: 40px;
-      width: 100%;
-      max-width: 600px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-    }
-    h1 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1a1a2e;
-      margin-bottom: 6px;
-    }
-    .subtitle {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
-    .form-group {
+      padding: 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
       margin-bottom: 20px;
     }
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
+
+    /* ── Upload form ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: #555; margin-bottom: 6px;
     }
-    .file-input-wrapper {
-      position: relative;
-      border: 2px dashed #d0d5dd;
-      border-radius: 8px;
-      padding: 14px 16px;
-      background: #fafafa;
-      cursor: pointer;
-      transition: border-color 0.2s;
+    .file-drop {
+      border: 2px dashed #d0d5dd; border-radius: 8px;
+      padding: 14px 16px; background: #fafafa;
+      cursor: pointer; transition: border-color 0.2s; position: relative;
     }
-    .file-input-wrapper:hover {
-      border-color: #0066cc;
+    .file-drop:hover { border-color: #1a73e8; }
+    .file-drop input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
     }
-    .file-input-wrapper input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
+    .file-drop-label { font-size: 13px; color: #888; }
+    .file-drop-label span { color: #1a73e8; font-weight: 500; }
+    .file-selected { font-size: 13px; color: #1a7f37; font-weight: 500; display: none; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 12px 24px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
-    .file-label {
-      font-size: 14px;
-      color: #666;
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-primary:hover:not(:disabled) { background: #1557b0; }
+    .btn-primary:disabled { background: #a8c7f5; cursor: not-allowed; }
+    .btn-success { background: #1a7f37; color: white; }
+    .btn-success:hover { background: #145e28; }
+    .btn-outline {
+      background: white; color: #1a73e8;
+      border: 2px solid #1a73e8;
     }
-    .file-label span {
-      color: #0066cc;
-      font-weight: 500;
-    }
-    .file-name {
-      font-size: 13px;
-      color: #1a7f37;
-      font-weight: 500;
-      display: none;
-    }
-    button[type="submit"] {
-      width: 100%;
-      padding: 14px;
-      background: #0066cc;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background 0.2s;
-    }
-    button[type="submit"]:hover:not(:disabled) {
-      background: #0052a3;
-    }
-    button[type="submit"]:disabled {
-      background: #99bbdd;
-      cursor: not-allowed;
-    }
+    .btn-outline:hover { background: #e8f0fe; }
+    .btn-full { width: 100%; margin-top: 20px; padding: 14px; font-size: 15px; }
+
+    /* ── Status ── */
     .status {
-      margin-top: 20px;
-      padding: 14px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      display: none;
+      padding: 14px 16px; border-radius: 8px; font-size: 14px;
+      margin-top: 16px; display: none;
     }
     .status.loading {
-      background: #fff8e1;
-      color: #856404;
-      border: 1px solid #ffc107;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      background: #fff8e1; color: #856404; border: 1px solid #ffc107;
+      display: flex; align-items: center; gap: 10px;
     }
-    .status.success {
-      background: #e6f4ea;
-      color: #1a7f37;
-      border: 1px solid #34a853;
-    }
-    .status.error {
-      background: #fce8e8;
-      color: #c62828;
-      border: 1px solid #e53935;
-    }
+    .status.error { background: #fce8e8; color: #c62828; border: 1px solid #e53935; display: block; }
     .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #ffc107;
-      border-top-color: #856404;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
+      width: 18px; height: 18px; border: 2px solid #ffc107;
+      border-top-color: #856404; border-radius: 50%;
+      animation: spin 0.8s linear infinite; flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .divider {
-      border: none;
-      border-top: 1px solid #eee;
-      margin: 28px 0;
+
+    /* ── Preview ── */
+    #previewSection { display: none; }
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: gap;
     }
-    .dsps {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 28px;
+    .preview-header h2 { font-size: 18px; font-weight: 700; }
+    .preview-actions { display: flex; gap: 10px; }
+
+    .tab-nav {
+      display: flex; gap: 4px; margin-bottom: 16px;
+      border-bottom: 2px solid #eee; padding-bottom: 0;
     }
-    .dsp-badge {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
+    .tab-btn {
+      padding: 8px 16px; border: none; background: none;
+      font-size: 13px; font-weight: 500; color: #666;
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; border-radius: 4px 4px 0 0;
+      transition: all 0.15s;
     }
-    .dsp-badge.active {
-      background: #e8f0fe;
-      color: #1a73e8;
+    .tab-btn.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+    .tab-btn:hover:not(.active) { background: #f5f5f5; color: #333; }
+
+    .tab-panel { display: none; overflow-x: auto; }
+    .tab-panel.active { display: block; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: #f8f9fa; text-align: left;
+      padding: 10px 12px; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.4px;
+      color: #555; border-bottom: 2px solid #e0e0e0;
+      white-space: nowrap;
     }
-    .dsp-badge.coming-soon {
-      background: #f1f3f4;
-      color: #999;
+    td {
+      padding: 10px 12px; border-bottom: 1px solid #f0f0f0;
+      color: #333; max-width: 240px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8f9ff; }
+    .empty-state { padding: 32px; text-align: center; color: #999; font-size: 14px; }
+
+    /* ── Revision panel ── */
+    .revision-card { border: 2px solid #1a73e8; }
+    .revision-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .revision-card p { font-size: 13px; color: #666; margin-bottom: 14px; }
+    .revision-card textarea {
+      width: 100%; padding: 12px; border: 1px solid #d0d5dd;
+      border-radius: 8px; font-size: 14px; resize: vertical;
+      min-height: 80px; font-family: inherit;
+    }
+    .revision-card textarea:focus { outline: none; border-color: #1a73e8; }
+    .revision-actions { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+
+    /* ── Feedback log ── */
+    .feedback-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #e6f4ea; color: #1a7f37; border-radius: 20px;
+      padding: 4px 10px; font-size: 12px; font-weight: 600;
+      margin-top: 12px;
+    }
+
+    /* ── Revision history ── */
+    .revision-history { margin-top: 16px; }
+    .revision-item {
+      background: #f8f9fa; border-radius: 6px; padding: 10px 14px;
+      margin-bottom: 8px; font-size: 13px; border-left: 3px solid #1a73e8;
+    }
+    .revision-item .label { font-weight: 600; color: #555; font-size: 11px; text-transform: uppercase; }
+
+    /* ── Hidden ── */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>TTD Campaign Bulk Upload Generator</h1>
-    <p class="subtitle">Upload your 4 media files and get a ready-to-import TTD bulk sheet</p>
+<div class="container">
 
+  <div class="header">
+    <h1>TTD Campaign Bulk Upload Generator</h1>
+    <p>Upload your 4 media files to generate a ready-to-import TTD bulk sheet</p>
     <div class="dsps">
       <span class="dsp-badge active">The Trade Desk</span>
-      <span class="dsp-badge coming-soon">DV360 (soon)</span>
-      <span class="dsp-badge coming-soon">Amazon DSP (soon)</span>
+      <span class="dsp-badge soon">DV360 (soon)</span>
+      <span class="dsp-badge soon">Amazon DSP (soon)</span>
     </div>
-
-    <form id="uploadForm">
-      <div class="form-group">
-        <label>Media Brief</label>
-        <div class="file-input-wrapper" id="wrapper-brief">
-          <input type="file" name="media_brief" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-brief')">
-          <div class="file-label" id="label-brief-placeholder">
-            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
-          </div>
-          <div class="file-name" id="label-brief"></div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Media Plan</label>
-        <div class="file-input-wrapper">
-          <input type="file" name="media_plan" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-plan')">
-          <div class="file-label" id="label-plan-placeholder">
-            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
-          </div>
-          <div class="file-name" id="label-plan"></div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Audience Matrix</label>
-        <div class="file-input-wrapper">
-          <input type="file" name="audience_matrix" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-audience')">
-          <div class="file-label" id="label-audience-placeholder">
-            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
-          </div>
-          <div class="file-name" id="label-audience"></div>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Trafficking Sheet</label>
-        <div class="file-input-wrapper">
-          <input type="file" name="trafficking_sheet" accept=".xlsx,.xls" required onchange="updateLabel(this, 'label-trafficking')">
-          <div class="file-label" id="label-trafficking-placeholder">
-            <span>Choose file</span> or drag and drop &nbsp;·&nbsp; .xlsx / .xls
-          </div>
-          <div class="file-name" id="label-trafficking"></div>
-        </div>
-      </div>
-
-      <button type="submit" id="submitBtn">Generate TTD Bulk Upload Sheet</button>
-    </form>
-
-    <div id="status" class="status"></div>
   </div>
 
-  <script>
-    function updateLabel(input, labelId) {
-      const label = document.getElementById(labelId);
-      const placeholder = document.getElementById(labelId + '-placeholder');
-      if (input.files[0]) {
-        label.textContent = '✓ ' + input.files[0].name;
-        label.style.display = 'block';
-        if (placeholder) placeholder.style.display = 'none';
+  <!-- Steps -->
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-num">1</div> Upload Files</div>
+    <div class="step-divider"></div>
+    <div class="step" id="step2"><div class="step-num">2</div> Review Output</div>
+    <div class="step-divider"></div>
+    <div class="step" id="step3"><div class="step-num">3</div> Export</div>
+  </div>
+
+  <!-- ── STEP 1: Upload ── -->
+  <div id="uploadSection">
+    <div class="card">
+      <form id="uploadForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Media Brief</label>
+            <div class="file-drop">
+              <input type="file" name="media_brief" accept=".xlsx,.xls" required onchange="fileChosen(this,'fb1','fs1')">
+              <div class="file-drop-label" id="fb1"><span>Choose file</span> · .xlsx</div>
+              <div class="file-selected" id="fs1"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Media Plan</label>
+            <div class="file-drop">
+              <input type="file" name="media_plan" accept=".xlsx,.xls" required onchange="fileChosen(this,'fb2','fs2')">
+              <div class="file-drop-label" id="fb2"><span>Choose file</span> · .xlsx</div>
+              <div class="file-selected" id="fs2"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Audience Matrix</label>
+            <div class="file-drop">
+              <input type="file" name="audience_matrix" accept=".xlsx,.xls" required onchange="fileChosen(this,'fb3','fs3')">
+              <div class="file-drop-label" id="fb3"><span>Choose file</span> · .xlsx</div>
+              <div class="file-selected" id="fs3"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Trafficking Sheet</label>
+            <div class="file-drop">
+              <input type="file" name="trafficking_sheet" accept=".xlsx,.xls" required onchange="fileChosen(this,'fb4','fs4')">
+              <div class="file-drop-label" id="fb4"><span>Choose file</span> · .xlsx</div>
+              <div class="file-selected" id="fs4"></div>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="generateBtn">
+          Generate TTD Bulk Upload Sheet
+        </button>
+      </form>
+      <div id="uploadStatus" class="status"></div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2 & 3: Preview + Revise ── -->
+  <div id="previewSection">
+
+    <div class="card">
+      <div class="preview-header">
+        <div>
+          <h2>Review Output</h2>
+          <p style="font-size:13px;color:#666;margin-top:4px;">
+            Check each tab below. Request revisions if anything looks wrong, then export when ready.
+          </p>
+        </div>
+        <div class="preview-actions">
+          <button class="btn btn-outline" onclick="startOver()">Start Over</button>
+          <button class="btn btn-success" id="exportBtn" onclick="exportExcel()">
+            Download Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab nav -->
+      <div class="tab-nav" id="tabNav"></div>
+
+      <!-- Tab panels -->
+      <div id="tabPanels"></div>
+    </div>
+
+    <!-- Revision panel -->
+    <div class="card revision-card">
+      <h3>Request a Revision</h3>
+      <p>Describe what looks wrong and Claude will fix it. Corrections are saved as rules for future campaigns.</p>
+      <textarea id="revisionInput" placeholder="e.g. &quot;CTV ad groups should use VCR as the goal type, not CPM&quot; or &quot;The campaign name should include the LOB prefix&quot;"></textarea>
+      <div class="revision-actions">
+        <button class="btn btn-primary" id="reviseBtn" onclick="requestRevision()">Apply Revision</button>
+      </div>
+      <div id="revisionStatus" class="status"></div>
+
+      <!-- Revision history -->
+      <div id="revisionHistory" class="revision-history hidden"></div>
+
+      <!-- Feedback saved badge -->
+      <div id="feedbackBadge" class="feedback-badge hidden">
+        ✓ Correction saved as a future rule
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  // ── State ──────────────────────────────────────────────────────────────
+  let sessionId = null;
+  let ttdData = null;
+  const revisions = [];
+
+  const TAB_LABELS = {
+    campaign_sets: 'Campaign Sets',
+    campaigns: 'Campaigns',
+    ad_groups: 'Ad Groups',
+    budget_flights: 'Budget Flights',
+    campaign_fees: 'Campaign Fees',
+    ad_group_fees: 'Ad Group Fees'
+  };
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
+  function fileChosen(input, placeholderId, selectedId) {
+    if (!input.files[0]) return;
+    document.getElementById(placeholderId).style.display = 'none';
+    const el = document.getElementById(selectedId);
+    el.textContent = '✓ ' + input.files[0].name;
+    el.style.display = 'block';
+  }
+
+  function setStep(n) {
+    [1,2,3].forEach(i => {
+      const el = document.getElementById('step' + i);
+      el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    });
+  }
+
+  function showLoading(statusId, msg) {
+    const el = document.getElementById(statusId);
+    el.className = 'status loading';
+    el.innerHTML = `<div class="spinner"></div> ${msg}`;
+  }
+
+  function showError(statusId, msg) {
+    const el = document.getElementById(statusId);
+    el.className = 'status error';
+    el.textContent = 'Error: ' + msg;
+  }
+
+  function hideStatus(statusId) {
+    document.getElementById(statusId).className = 'status';
+  }
+
+  // ── Render preview tables ───────────────────────────────────────────────
+  function renderPreview(data) {
+    const nav = document.getElementById('tabNav');
+    const panels = document.getElementById('tabPanels');
+    nav.innerHTML = '';
+    panels.innerHTML = '';
+
+    let firstActive = true;
+    for (const [key, label] of Object.entries(TAB_LABELS)) {
+      const rows = data[key] || [];
+
+      // Tab button
+      const btn = document.createElement('button');
+      btn.className = 'tab-btn' + (firstActive ? ' active' : '');
+      btn.textContent = `${label} (${rows.length})`;
+      btn.onclick = () => switchTab(key);
+      btn.dataset.tab = key;
+      nav.appendChild(btn);
+
+      // Tab panel
+      const panel = document.createElement('div');
+      panel.className = 'tab-panel' + (firstActive ? ' active' : '');
+      panel.id = 'panel-' + key;
+
+      if (rows.length === 0) {
+        panel.innerHTML = '<div class="empty-state">No rows generated for this tab.</div>';
+      } else {
+        const cols = Object.keys(rows[0]);
+        const table = document.createElement('table');
+        table.innerHTML = `
+          <thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>
+            ${rows.map(row =>
+              `<tr>${cols.map(c => `<td title="${row[c] ?? ''}">${row[c] ?? ''}</td>`).join('')}</tr>`
+            ).join('')}
+          </tbody>`;
+        panel.appendChild(table);
       }
+      panels.appendChild(panel);
+      firstActive = false;
+    }
+  }
+
+  function switchTab(key) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === key));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + key));
+  }
+
+  // ── Generate ────────────────────────────────────────────────────────────
+  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
+    showLoading('uploadStatus', 'Processing with AI — this takes 30–60 seconds…');
+
+    try {
+      const formData = new FormData(e.target);
+      const res = await fetch('/generate', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+
+      sessionId = data.session_id;
+      ttdData = data.ttd_data;
+
+      hideStatus('uploadStatus');
+      document.getElementById('uploadSection').style.display = 'none';
+      document.getElementById('previewSection').style.display = 'block';
+      setStep(2);
+      renderPreview(ttdData);
+    } catch (err) {
+      showError('uploadStatus', err.message);
     }
 
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      const status = document.getElementById('status');
+    btn.disabled = false;
+    btn.textContent = 'Generate TTD Bulk Upload Sheet';
+  });
 
-      btn.disabled = true;
-      btn.textContent = 'Generating...';
-      status.className = 'status loading';
-      status.style.display = 'flex';
-      status.innerHTML = '<div class="spinner"></div> Processing with AI — this takes 30–60 seconds…';
+  // ── Revise ──────────────────────────────────────────────────────────────
+  async function requestRevision() {
+    const input = document.getElementById('revisionInput');
+    const text = input.value.trim();
+    if (!text) return;
 
-      try {
-        const formData = new FormData(e.target);
-        const response = await fetch('/generate', { method: 'POST', body: formData });
+    const btn = document.getElementById('reviseBtn');
+    btn.disabled = true;
+    btn.textContent = 'Revising…';
+    showLoading('revisionStatus', 'Applying revision and saving correction rule…');
+    document.getElementById('feedbackBadge').classList.add('hidden');
 
-        if (!response.ok) {
-          const err = await response.text();
-          throw new Error(err || `Server error ${response.status}`);
-        }
+    try {
+      const res = await fetch('/revise', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, revision_request: text, ttd_data: ttdData })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
 
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'TTD_Campaign_Bulk_Upload.xlsx';
-        a.click();
-        URL.revokeObjectURL(url);
+      ttdData = data.ttd_data;
+      renderPreview(ttdData);
 
-        status.className = 'status success';
-        status.innerHTML = '✓ Your TTD bulk upload sheet has been downloaded.';
-      } catch (err) {
-        status.className = 'status error';
-        status.textContent = 'Error: ' + err.message;
-      }
+      // Log revision
+      revisions.push(text);
+      const history = document.getElementById('revisionHistory');
+      history.classList.remove('hidden');
+      history.innerHTML = '<div style="font-size:11px;font-weight:600;text-transform:uppercase;color:#999;margin-bottom:8px;">Revision History</div>' +
+        revisions.map(r => `<div class="revision-item"><span class="label">Revision</span><br>${r}</div>`).join('');
 
-      btn.disabled = false;
-      btn.textContent = 'Generate TTD Bulk Upload Sheet';
-    });
-  </script>
+      input.value = '';
+      hideStatus('revisionStatus');
+      document.getElementById('feedbackBadge').classList.remove('hidden');
+      setStep(3);
+    } catch (err) {
+      showError('revisionStatus', err.message);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Apply Revision';
+  }
+
+  // ── Export ───────────────────────────────────────────────────────────────
+  async function exportExcel() {
+    const btn = document.getElementById('exportBtn');
+    btn.disabled = true;
+    btn.textContent = 'Exporting…';
+
+    try {
+      const res = await fetch('/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ttd_data: ttdData })
+      });
+      if (!res.ok) throw new Error(await res.text());
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'TTD_Campaign_Bulk_Upload.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+      setStep(3);
+    } catch (err) {
+      alert('Export error: ' + err.message);
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Download Excel';
+  }
+
+  // ── Start over ───────────────────────────────────────────────────────────
+  function startOver() {
+    sessionId = null;
+    ttdData = null;
+    revisions.length = 0;
+    document.getElementById('uploadSection').style.display = 'block';
+    document.getElementById('previewSection').style.display = 'none';
+    document.getElementById('uploadForm').reset();
+    document.getElementById('revisionHistory').classList.add('hidden');
+    document.getElementById('feedbackBadge').classList.add('hidden');
+    document.getElementById('revisionInput').value = '';
+    ['fs1','fs2','fs3','fs4'].forEach(id => { document.getElementById(id).style.display = 'none'; });
+    ['fb1','fb2','fb3','fb4'].forEach(id => { document.getElementById(id).style.display = 'block'; });
+    setStep(1);
+  }
+
+  // Allow Enter in revision textarea to submit (Shift+Enter for newline)
+  document.getElementById('revisionInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); requestRevision(); }
+  });
+</script>
 </body>
 </html>
