@@ -138,18 +138,20 @@ Update `defaults.json` to change default values without touching code.
 
 ## Channel Aliases (CHANNEL_MAP)
 
-These source values are normalised to TTD channel names:
+These source values are normalised to TTD channel names (case-insensitive):
 
-| Source Value | → TTD Channel |
-|---|---|
-| ctv, connected tv, streaming tv | CTV |
-| olv, online video, pre-roll | OLV |
-| display, banner | Display |
-| native | Native |
-| audio, streaming audio | Audio |
-| dooh, out of home, digital ooh | DOOH |
+| Source Value | → TTD Channel | Notes |
+|---|---|---|
+| Video CTV, CTV, Connected TV, Streaming TV | CTV | |
+| Connected Home | CTV | Smart home / OTT devices |
+| Video OLV, OLV, Online Video, Pre-roll | OLV | |
+| Display, Banner | Display | |
+| Native | Native | |
+| Audio Streaming Audio, Streaming Audio, Audio Podcasts, Audio | Audio | |
+| Connected Car | Audio | In-car audio / connected vehicle |
+| DOOH, Out of Home, Digital OOH | DOOH | |
 
-> If a channel value isn't in this list, it is passed through unchanged. Add entries to `CHANNEL_MAP` in `mapper.py` as needed.
+> If a channel value isn't in this list it is passed through unchanged. Add entries to `CHANNEL_MAP` in `mapper.py` as needed.
 
 ---
 

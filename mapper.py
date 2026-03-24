@@ -17,18 +17,36 @@ DV360_DSP_NAMES  = {"dv360"}
 AMAZON_DSP_NAMES = {"amazon"}
 
 # ── Channel normalisation: source values → TTD canonical names ───────────────
+# Keys must be lowercase — normalise_channel() lowercases before lookup.
 CHANNEL_MAP = {
+    # CTV
+    "video ctv":        "CTV",
     "ctv":              "CTV",
     "connected tv":     "CTV",
     "streaming tv":     "CTV",
+    "connected home":   "CTV",   # smart home / OTT devices
+
+    # OLV
+    "video olv":        "OLV",
     "olv":              "OLV",
     "online video":     "OLV",
     "pre-roll":         "OLV",
+
+    # Display
     "display":          "Display",
     "banner":           "Display",
+
+    # Native
     "native":           "Native",
-    "audio":            "Audio",
+
+    # Audio
+    "audio streaming audio": "Audio",
     "streaming audio":  "Audio",
+    "audio podcasts":   "Audio",
+    "audio":            "Audio",
+    "connected car":    "Audio",  # in-car audio / connected vehicle
+
+    # DOOH
     "dooh":             "DOOH",
     "out of home":      "DOOH",
     "digital ooh":      "DOOH",
