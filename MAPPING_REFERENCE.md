@@ -29,7 +29,7 @@ Update `defaults.json` to change default values without touching code.
 | Campaign ID | 🚫 | — | — | Read Only |
 | Campaign Name | ✅ | Trafficking Sheet | `Campaign` | All unique Campaign values become separate campaign rows. Fallback: `LOB` + `Product/Service` from Media Brief. |
 | Advertiser | 🚫 | — | — | Read Only |
-| Description | ✅ | Media Brief | `Media Objectives` | Falls back to `Communications Objective` if blank. |
+| Description | ✅ | Media Brief | `Media Objectives` | Values confirmed in column B next to each label. Falls back to `Communications Objective` if blank. |
 | Objective | 🔵 | defaults.json | `by_lob_and_channel` → `by_channel` → `by_lob` | Most specific LOB+Channel match wins. |
 | Primary Channel | 🔵 | defaults.json | `by_channel[channel]["Primary Channel"]` | Derived from the first Channel in the Media Plan. |
 | Goals | 🔵 | defaults.json | `by_lob[lob]["Goals"]` | LOB-level goal type. |
@@ -96,8 +96,8 @@ Update `defaults.json` to change default values without touching code.
 | Daily Spend Cap (in advertiser currency) | ⬜ | — | — | Not in source documents — calculated manually post-export |
 | Impression Budget | ✅ | Media Plan | `Planned Impressions` | Direct copy. |
 | Daily Impression Cap | ⬜ | — | — | Not in source documents |
-| Start Date Inclusive UTC | ✅ | Media Plan | `Flight` (start) | Parsed from flight date range. Fallback: Trafficking `Creative Flight Date`. Format: `YYYY-MM-DD 00:00:00` |
-| End Date Exclusive UTC | ✅ | Media Plan | `Flight` (end) | Parsed from flight date range end. Format: `YYYY-MM-DD 00:00:00` |
+| Start Date Inclusive UTC | ✅ | Media Plan | `Flight` (start) | Parsed from flight date range. Confirmed format: `M/D/YYYY - M/D/YYYY` e.g. `12/1/2025 - 12/31/2025`. Fallback: Trafficking `Creative Flight Date`. Output: `YYYY-MM-DD 00:00:00` |
+| End Date Exclusive UTC | ✅ | Media Plan | `Flight` (end) | Parsed from flight date range end. Same format as above. Output: `YYYY-MM-DD 00:00:00` |
 | Action | 🔵 | defaults.json | `global["Action"]` | Always `New` for new line items. |
 | Geography Targets | 🚫 | — | — | Read Only |
 | Channel | 🚫 | — | — | Read Only |

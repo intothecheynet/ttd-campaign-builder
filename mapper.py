@@ -219,36 +219,39 @@ def build_ad_group_name(row: dict) -> str:
 
 def parse_flight_dates(flight_str: str):
     """
-    Parse flight date strings. Expects 'MM/DD - MM/DD', 'MM/DD/YYYY - MM/DD/YYYY',
-    or a datetime object. Returns (start_str, end_str) in 'YYYY-MM-DD 00:00:00'.
+    Parse flight date strings from the Media Plan 'Flight' column.
+    Confirmed format: 'M/D/YYYY - M/D/YYYY'  e.g. '12/1/2025 - 12/31/2025'
+    Also handles datetime objects (from openpyxl date cells).
+    Returns (start_str, end_str) as 'YYYY-MM-DD 00:00:00'.
     """
     if not flight_str:
         return None, None
 
+    # openpyxl may return a datetime object for date-formatted cells
     if isinstance(flight_str, datetime):
         return flight_str.strftime("%Y-%m-%d 00:00:00"), None
 
     s = str(flight_str).strip()
-    year = datetime.now().year
 
-    for sep in [" - ", "-", " to ", "/"]:
-        if sep in s:
-            parts = s.split(sep, 1)
-            try:
-                def parse_part(p):
-                    p = p.strip()
-                    for fmt in ("%m/%d/%Y", "%m/%d/%y", "%m/%d", "%Y-%m-%d"):
-                        try:
-                            d = datetime.strptime(p, fmt)
-                            if d.year == 1900:  # strptime default when no year
-                                d = d.replace(year=year)
-                            return d.strftime("%Y-%m-%d 00:00:00")
-                        except ValueError:
-                            continue
-                    return None
-                return parse_part(parts[0]), parse_part(parts[1])
-            except Exception:
-                pass
+    # Primary format: 'M/D/YYYY - M/D/YYYY'
+    if " - " in s:
+        parts = s.split(" - ", 1)
+        def to_ttd(p):
+            p = p.strip()
+            for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d"):
+                try:
+                    return datetime.strptime(p, fmt).strftime("%Y-%m-%d 00:00:00")
+                except ValueError:
+                    continue
+            return None
+        return to_ttd(parts[0]), to_ttd(parts[1])
+
+    # Single date fallback
+    for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d"):
+        try:
+            return datetime.strptime(s, fmt).strftime("%Y-%m-%d 00:00:00"), None
+        except ValueError:
+            continue
 
     return None, None
 
