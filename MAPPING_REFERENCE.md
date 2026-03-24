@@ -181,5 +181,12 @@ These source values are normalised to TTD channel names:
 
 ## Media Plan DSP filter
 
-Only rows where the `DSP` column matches one of these values are included:
-`TTD`, `The Trade Desk`, `TradeDesk`, `Trade Desk` (case-insensitive)
+Only rows where the `DSP` column exactly matches (case-insensitive):
+
+| DSP column value | Routes to |
+|---|---|
+| `TTD` | The Trade Desk bulk sheet |
+| `DV360` | DV360 bulk sheet (coming soon) |
+| `Amazon` | Amazon DSP bulk sheet (coming soon) |
+
+Rows with any other DSP value are ignored.

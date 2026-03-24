@@ -11,8 +11,10 @@ from datetime import datetime, timedelta
 DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "defaults.json")
 FEEDBACK_PATH = os.path.join(os.path.dirname(__file__), "feedback.json")
 
-# ── TTD DSP aliases used in Media Plan "DSP" column ──────────────────────────
-TTD_DSP_NAMES = {"ttd", "the trade desk", "tradedesk", "trade desk"}
+# ── DSP values used in Media Plan "DSP" column ───────────────────────────────
+TTD_DSP_NAMES    = {"ttd"}
+DV360_DSP_NAMES  = {"dv360"}
+AMAZON_DSP_NAMES = {"amazon"}
 
 # ── Channel normalisation: source values → TTD canonical names ───────────────
 CHANNEL_MAP = {
