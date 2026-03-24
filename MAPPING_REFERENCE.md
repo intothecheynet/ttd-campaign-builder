@@ -143,7 +143,7 @@ These source values are normalised to TTD channel names (case-insensitive):
 | Source Value | → TTD Channel | Notes |
 |---|---|---|
 | Video CTV, CTV, Connected TV, Streaming TV | CTV | |
-| Connected Home | CTV | Smart home / OTT devices |
+| Connected Home | Audio | Connected audio devices |
 | Video OLV, OLV, Online Video, Pre-roll | OLV | |
 | Display, Banner | Display | |
 | Native | Native | |

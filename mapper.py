@@ -24,7 +24,7 @@ CHANNEL_MAP = {
     "ctv":              "CTV",
     "connected tv":     "CTV",
     "streaming tv":     "CTV",
-    "connected home":   "CTV",   # smart home / OTT devices
+    "connected home":   "Audio",  # connected audio devices
 
     # OLV
     "video olv":        "OLV",
