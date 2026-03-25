@@ -5,3 +5,4 @@ openpyxl
 pandas
 python-multipart
 jinja2
+markdown

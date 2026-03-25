@@ -3,6 +3,7 @@ import json
 import io
 import uuid
 from datetime import datetime
+import markdown
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -14,8 +15,9 @@ templates = Jinja2Templates(directory="templates")
 client = anthropic.Anthropic()
 
 TTD_TEMPLATE_PATH = os.path.expanduser("~/Downloads/TTD BULKSHEET.xlsx")
-DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "defaults.json")
-FEEDBACK_PATH = os.path.join(os.path.dirname(__file__), "feedback.json")
+DEFAULTS_PATH   = os.path.join(os.path.dirname(__file__), "defaults.json")
+FEEDBACK_PATH   = os.path.join(os.path.dirname(__file__), "feedback.json")
+MAPPING_PATH    = os.path.join(os.path.dirname(__file__), "MAPPING_REFERENCE.md")
 
 # In-memory session store: session_id -> source_data
 sessions = {}
@@ -198,6 +200,56 @@ def call_claude(prompt: str) -> dict:
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/mapping", response_class=HTMLResponse)
+async def mapping_doc(request: Request):
+    with open(MAPPING_PATH) as f:
+        content = f.read()
+    body = markdown.markdown(content, extensions=["tables"])
+    return HTMLResponse(f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TTD Field Mapping Reference</title>
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           max-width: 1100px; margin: 0 auto; padding: 40px 24px;
+           color: #1a1a2e; background: #f0f2f5; line-height: 1.6; }}
+    .card {{ background: white; border-radius: 12px; padding: 40px;
+             box-shadow: 0 2px 12px rgba(0,0,0,0.06); }}
+    .nav {{ margin-bottom: 24px; font-size: 14px; }}
+    .nav a {{ color: #1a73e8; text-decoration: none; }}
+    .nav a:hover {{ text-decoration: underline; }}
+    h1 {{ font-size: 24px; font-weight: 700; margin-bottom: 6px; }}
+    h2 {{ font-size: 17px; font-weight: 700; margin: 36px 0 12px;
+          padding-bottom: 8px; border-bottom: 2px solid #eee; color: #1a1a2e; }}
+    h3 {{ font-size: 15px; font-weight: 600; margin: 24px 0 8px; }}
+    p {{ margin: 0 0 12px; color: #444; font-size: 14px; }}
+    table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 24px; }}
+    th {{ background: #f8f9fa; text-align: left; padding: 10px 12px;
+          font-size: 11px; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.5px; color: #555; border-bottom: 2px solid #e0e0e0; }}
+    td {{ padding: 9px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }}
+    tr:last-child td {{ border-bottom: none; }}
+    tr:hover td {{ background: #f8f9ff; }}
+    code {{ background: #f1f3f4; padding: 2px 6px; border-radius: 4px;
+            font-size: 12px; font-family: monospace; }}
+    blockquote {{ border-left: 3px solid #1a73e8; margin: 0 0 16px;
+                  padding: 10px 16px; background: #e8f0fe; border-radius: 0 6px 6px 0; }}
+    blockquote p {{ color: #1a1a2e; margin: 0; }}
+    ul, ol {{ padding-left: 20px; margin: 0 0 12px; font-size: 14px; color: #444; }}
+    li {{ margin-bottom: 4px; }}
+    hr {{ border: none; border-top: 1px solid #eee; margin: 32px 0; }}
+  </style>
+</head>
+<body>
+  <div class="nav"><a href="/">← Back to app</a></div>
+  <div class="card">{body}</div>
+</body>
+</html>""")
+
 
 
 @app.post("/generate")
