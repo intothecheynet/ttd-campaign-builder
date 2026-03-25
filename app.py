@@ -15,9 +15,10 @@ templates = Jinja2Templates(directory="templates")
 client = anthropic.Anthropic()
 
 TTD_TEMPLATE_PATH = os.path.expanduser("~/Downloads/TTD BULKSHEET.xlsx")
-DEFAULTS_PATH   = os.path.join(os.path.dirname(__file__), "defaults.json")
-FEEDBACK_PATH   = os.path.join(os.path.dirname(__file__), "feedback.json")
-MAPPING_PATH    = os.path.join(os.path.dirname(__file__), "MAPPING_REFERENCE.md")
+DEFAULTS_PATH          = os.path.join(os.path.dirname(__file__), "defaults.json")
+FEEDBACK_PATH          = os.path.join(os.path.dirname(__file__), "feedback.json")
+MAPPING_PATH           = os.path.join(os.path.dirname(__file__), "MAPPING_REFERENCE.md")
+PLATFORM_DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "platform_defaults.json")
 
 # In-memory session store: session_id -> source_data
 sessions = {}
@@ -127,9 +128,15 @@ def create_ttd_excel(ttd_data: dict) -> bytes:
     return output.read()
 
 
+def load_platform_defaults() -> dict:
+    with open(PLATFORM_DEFAULTS_PATH) as f:
+        return json.load(f)
+
+
 def build_mapping_prompt(files_data: dict, extra_instruction: str = "") -> str:
-    defaults = load_defaults()
-    feedback_rules = load_feedback()
+    defaults          = load_defaults()
+    platform_defaults = load_platform_defaults()
+    feedback_rules    = load_feedback()
 
     feedback_section = ""
     if feedback_rules:
@@ -160,7 +167,17 @@ Map this to the TTD bulk upload format. Return a JSON object with exactly these 
 TTD field names to use (skip any marked [Read Only]):
 {json.dumps(TTD_SCHEMA, indent=2)}
 
-DEFAULT VALUES — use when a field cannot be found in the source documents (most specific wins):
+DEFAULT VALUES — apply in this priority order (most specific wins):
+1. platform_defaults — TTD technical settings not in source documents (base layer)
+2. global — applies to everything
+3. by_channel — applies when channel is known
+4. by_lob — applies when line of business is known
+5. by_lob_and_channel — most specific, overrides all others
+
+PLATFORM DEFAULTS (base layer — TTD technical fields):
+{json.dumps(platform_defaults, indent=2)}
+
+BUSINESS DEFAULTS (by LOB / channel):
 {json.dumps(defaults, indent=2)}
 {feedback_section}{revision_section}
 Field mapping guidance:

@@ -8,8 +8,9 @@ import json
 import os
 from datetime import datetime, timedelta
 
-DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "defaults.json")
-FEEDBACK_PATH = os.path.join(os.path.dirname(__file__), "feedback.json")
+DEFAULTS_PATH          = os.path.join(os.path.dirname(__file__), "defaults.json")
+FEEDBACK_PATH          = os.path.join(os.path.dirname(__file__), "feedback.json")
+PLATFORM_DEFAULTS_PATH = os.path.join(os.path.dirname(__file__), "platform_defaults.json")
 
 # ── DSP values used in Media Plan "DSP" column ───────────────────────────────
 TTD_DSP_NAMES    = {"ttd"}
@@ -138,6 +139,24 @@ def parse_trafficking_sheet(sheet_data: dict) -> list:
 def load_defaults() -> dict:
     with open(DEFAULTS_PATH) as f:
         return json.load(f)
+
+
+def load_platform_defaults() -> dict:
+    with open(PLATFORM_DEFAULTS_PATH) as f:
+        return json.load(f)
+
+
+def apply_platform_defaults(row: dict, tab: str, platform: dict) -> dict:
+    """
+    Merge platform defaults for a given tab into a row dict.
+    Platform defaults are the base layer — existing values in the row always win.
+    Blank platform default values ("") are skipped.
+    """
+    base = platform.get(tab, {})
+    for field, value in base.items():
+        if value != "" and field not in row:
+            row[field] = value
+    return row
 
 
 def get_default(defaults: dict, field: str, channel: str = None, lob: str = None):
@@ -272,7 +291,8 @@ def map_to_ttd(files_data: dict) -> dict:
     Entry point. Takes parsed Excel data for all 4 input files.
     Returns TTD bulk upload data dict.
     """
-    defaults = load_defaults()
+    defaults          = load_defaults()
+    platform          = load_platform_defaults()
 
     brief        = parse_media_brief(files_data.get("Media Brief", {}))
     plan_lines   = parse_media_plan(files_data.get("Media Plan", {}))
@@ -387,11 +407,20 @@ def map_to_ttd(files_data: dict) -> dict:
             "Action":                                    get_default(defaults, "Action"),
         })
 
+    # Apply platform defaults as base layer to each tab
+    campaigns      = [apply_platform_defaults(r, "campaigns",      platform) for r in campaigns]
+    ad_groups      = [apply_platform_defaults(r, "ad_groups",      platform) for r in ad_groups]
+    budget_flights = [apply_platform_defaults(r, "budget_flights", platform) for r in budget_flights]
+
+    # Platform-level fees (same for every campaign unless overridden)
+    campaign_fees  = list(platform.get("campaign_fees",  []))
+    ad_group_fees  = list(platform.get("ad_group_fees",  []))
+
     return {
         "campaign_sets":  campaign_sets,
         "campaigns":      campaigns,
         "ad_groups":      ad_groups,
         "budget_flights": budget_flights,
-        "campaign_fees":  [],
-        "ad_group_fees":  [],
+        "campaign_fees":  campaign_fees,
+        "ad_group_fees":  ad_group_fees,
     }

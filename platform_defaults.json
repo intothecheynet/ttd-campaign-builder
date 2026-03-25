@@ -1,0 +1,36 @@
+{
+  "_instructions": "TTD platform-level defaults. Applied as the base layer before all other defaults. These are technical settings that never appear in source documents. Update these to match your TTD account configuration.",
+
+  "campaigns": {
+    "Reporting and Attribution":        "",
+    "Custom CPA Calculation":           "",
+    "Custom CPA Pixels and Weights":    "",
+    "Custom ROAS Type":                 "",
+    "Custom ROAS Pixels and Weights":   "",
+    "Comscore Settings":                "",
+    "Comscore CCR Settings":            "",
+    "Nielsen Settings":                 "",
+    "iSpot Settings":                   "",
+    "Innovid Settings":                 "",
+    "Realytics Settings":               "",
+    "Campaign Seed":                    ""
+  },
+
+  "ad_groups": {
+    "GRP Overall Frequency":            "",
+    "Cross Device":                     "",
+    "KOA Optimizations":                "",
+    "Funnel Location":                  "",
+    "Viewability Suite (Quality Alliance)": "",
+    "Labels":                           ""
+  },
+
+  "budget_flights": {
+    "Daily Spend Cap (in advertiser currency)":  "",
+    "Daily Impression Cap":                      ""
+  },
+
+  "campaign_fees": [],
+
+  "ad_group_fees": []
+}

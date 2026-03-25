@@ -5,9 +5,13 @@ Update `defaults.json` to change default values without touching code.
 
 **Legend**
 - ✅ Mapped from source document
-- 🔵 Pulled from `defaults.json`
-- ⬜ Left blank (TTD populates automatically or not available in source)
+- 🟣 Pulled from `platform_defaults.json` (TTD technical settings)
+- 🔵 Pulled from `defaults.json` (business defaults by LOB/channel)
+- ⬜ Left blank — fill in manually post-export
 - 🚫 Read Only — TTD populates, never written
+
+**Default priority order (most specific wins):**
+`platform_defaults` → `global` → `by_channel` → `by_lob` → `by_lob_and_channel`
 
 ---
 
@@ -36,21 +40,21 @@ Update `defaults.json` to change default values without touching code.
 | Time Zone ID | 🔵 | defaults.json | `global["Time Zone ID"]` | Default: `Eastern Time (US & Canada)` |
 | Pacing Mode | 🔵 | defaults.json | `global["Pacing Mode"]` | Default: `Even` |
 | Manually Prioritize Ad Groups | 🔵 | defaults.json | `global` | Default: `No` |
-| Comscore Settings | ⬜ | — | — | Not in source documents |
-| Comscore CCR Settings | ⬜ | — | — | Not in source documents |
-| Nielsen Settings | ⬜ | — | — | Not in source documents |
-| Reporting and Attribution | ⬜ | — | — | Not in source documents |
-| Custom CPA Calculation | ⬜ | — | — | Not in source documents |
-| Custom CPA Pixels and Weights | ⬜ | — | — | Not in source documents |
-| iSpot Settings | ⬜ | — | — | Not in source documents |
+| Comscore Settings | 🟣 | platform_defaults.json | `campaigns["Comscore Settings"]` | Blank by default — fill in platform_defaults.json if used. |
+| Comscore CCR Settings | 🟣 | platform_defaults.json | `campaigns["Comscore CCR Settings"]` | Blank by default — fill in platform_defaults.json if used. |
+| Nielsen Settings | 🟣 | platform_defaults.json | `campaigns["Nielsen Settings"]` | Blank by default — fill in platform_defaults.json if used. |
+| Reporting and Attribution | 🟣 | platform_defaults.json | `campaigns["Reporting and Attribution"]` | Blank by default — fill in platform_defaults.json if used. |
+| Custom CPA Calculation | 🟣 | platform_defaults.json | `campaigns["Custom CPA Calculation"]` | Blank by default — fill in platform_defaults.json if used. |
+| Custom CPA Pixels and Weights | 🟣 | platform_defaults.json | `campaigns["Custom CPA Pixels and Weights"]` | Blank by default — fill in platform_defaults.json if used. |
+| iSpot Settings | 🟣 | platform_defaults.json | `campaigns["iSpot Settings"]` | Blank by default — fill in platform_defaults.json if used. |
 | IO Contract | ✅ | Media Brief | `Brief ID` | Same as IO ID — Brief ID used as contract reference. |
-| Campaign PO # | ⬜ | — | — | Not in source documents |
-| Custom ROAS Type | ⬜ | — | — | Not in source documents |
-| Custom ROAS Pixels and Weights | ⬜ | — | — | Not in source documents |
+| Campaign PO # | ⬜ | — | — | Not in source documents — add manually post-export |
+| Custom ROAS Type | 🟣 | platform_defaults.json | `campaigns["Custom ROAS Type"]` | Blank by default — fill in platform_defaults.json if used. |
+| Custom ROAS Pixels and Weights | 🟣 | platform_defaults.json | `campaigns["Custom ROAS Pixels and Weights"]` | Blank by default — fill in platform_defaults.json if used. |
 | Frequency Group | 🚫 | — | — | Read Only |
-| Innovid Settings | ⬜ | — | — | Not in source documents |
-| Realytics Settings | ⬜ | — | — | Not in source documents |
-| Campaign Seed | ⬜ | — | — | Not in source documents |
+| Innovid Settings | 🟣 | platform_defaults.json | `campaigns["Innovid Settings"]` | Blank by default — fill in platform_defaults.json if used. |
+| Realytics Settings | 🟣 | platform_defaults.json | `campaigns["Realytics Settings"]` | Blank by default — fill in platform_defaults.json if used. |
+| Campaign Seed | 🟣 | platform_defaults.json | `campaigns["Campaign Seed"]` | Blank by default — fill in platform_defaults.json if used. |
 
 ---
 
@@ -64,10 +68,10 @@ Update `defaults.json` to change default values without touching code.
 | Description | ✅ | Trafficking Sheet | `Tactic` | Tactic value used as description. |
 | Status | 🚫 | — | — | Read Only |
 | Channel | ✅ | Media Plan / Trafficking | `Channel` | Normalised to TTD channel names via `CHANNEL_MAP`. See channel aliases below. |
-| Labels | ⬜ | — | — | Not in source documents |
+| Labels | 🟣 | platform_defaults.json | `ad_groups["Labels"]` | Blank by default — fill in platform_defaults.json if used. |
 | Goal Type | 🔵 | defaults.json | `by_lob_and_channel` → `by_channel` → `by_lob` | Most specific match wins. E.g. Auto + CTV = VCR. |
 | Goal Value | 🔵 | defaults.json | `by_lob_and_channel` → `by_channel` | Numeric target value for the Goal Type. |
-| GRP Overall Frequency | ⬜ | — | — | Not in source documents |
+| GRP Overall Frequency | 🟣 | platform_defaults.json | `ad_groups["GRP Overall Frequency"]` | Blank by default — fill in platform_defaults.json if used. |
 | Base Bid | 🔵 | defaults.json | `by_lob_and_channel` → `by_channel` | CPM dollar amount. |
 | Max Bid | 🔵 | defaults.json | `by_lob_and_channel` → `by_channel` | CPM dollar amount. |
 | Priority | 🔵 | defaults.json | `global["Priority"]` | Default: `Medium` |
@@ -76,11 +80,11 @@ Update `defaults.json` to change default values without touching code.
 | Marketplace | 🔵 | defaults.json | `by_channel[channel]["Marketplace"]` | CTV/DOOH default to Private Marketplace. Others default to Open Exchange. |
 | Audience | ✅ | Audience Matrix + Media Plan | `Segment Description` (activation rows) | All activation segments for TTD platform, semi-colon separated. Media Plan `Audience` field used if populated. |
 | Audience Excluder | ✅ | Audience Matrix | `Segment Description` (suppression rows) | All suppression segments for TTD platform. |
-| Cross Device | ⬜ | — | — | Not in source documents |
+| Cross Device | 🟣 | platform_defaults.json | `ad_groups["Cross Device"]` | Blank by default — fill in platform_defaults.json if used. |
 | Creatives | ✅ | Trafficking Sheet | `Creative` | Creative name from trafficking row. |
-| KOA Optimizations | ⬜ | — | — | Not in source documents |
-| Funnel Location | ⬜ | — | — | Not in source documents |
-| Viewability Suite (Quality Alliance) | ⬜ | — | — | Not in source documents |
+| KOA Optimizations | 🟣 | platform_defaults.json | `ad_groups["KOA Optimizations"]` | Blank by default — fill in platform_defaults.json if used. |
+| Funnel Location | 🟣 | platform_defaults.json | `ad_groups["Funnel Location"]` | Blank by default — fill in platform_defaults.json if used. |
+| Viewability Suite (Quality Alliance) | 🟣 | platform_defaults.json | `ad_groups["Viewability Suite (Quality Alliance)"]` | Blank by default — fill in platform_defaults.json if used. |
 
 ---
 
@@ -166,18 +170,17 @@ These source values are normalised to TTD channel names (case-insensitive):
 
 ## Fields NOT in any source document (require manual entry post-export)
 
+These fields cannot be derived from source documents and are not set by platform_defaults. Add them manually after export:
+
 - Campaign PO #
 - Daily Spend Cap
 - Daily Impression Cap
-- Comscore / Nielsen / iSpot settings
 - Frequency Group
-- Cross Device
-- KOA Optimizations
-- Funnel Location
-- Viewability Suite
 - Campaign Fees (Fee Name, Value)
 - Ad Group Fees (Ad Group Fee Name, Value)
-- Innovid / Realytics Settings
+
+> The following fields were previously in this list but are now covered by `platform_defaults.json` (🟣). Update that file to set them once for all campaigns:
+> Comscore Settings, Comscore CCR Settings, Nielsen Settings, Reporting and Attribution, Custom CPA Calculation/Pixels, Custom ROAS Type/Pixels, iSpot Settings, Innovid Settings, Realytics Settings, Campaign Seed, GRP Overall Frequency, Labels, Cross Device, KOA Optimizations, Funnel Location, Viewability Suite (Quality Alliance), Daily Spend Cap, Daily Impression Cap.
 
 ---
 
