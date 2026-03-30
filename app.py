@@ -1,6 +1,7 @@
 import os
 import json
 import io
+import csv
 import uuid
 from datetime import datetime
 import markdown
@@ -9,6 +10,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 import anthropic
 import openpyxl
+from dv360_mapper import map_to_dv360, DV360_IO_COLUMNS
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -345,4 +347,59 @@ async def export_ttd(request: Request):
         io.BytesIO(excel_bytes),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": "attachment; filename=TTD_Campaign_Bulk_Upload.xlsx"}
+    )
+
+
+# ── DV360 Routes ─────────────────────────────────────────────────────────────
+
+@app.post("/generate/dv360")
+async def generate_dv360(
+    media_brief: UploadFile = File(...),
+    media_plan: UploadFile = File(...),
+    audience_matrix: UploadFile = File(...),
+    trafficking_sheet: UploadFile = File(...)
+):
+    files_data = {}
+    for label, upload in [
+        ("Media Brief", media_brief),
+        ("Media Plan", media_plan),
+        ("Audience Matrix", audience_matrix),
+        ("Trafficking Sheet", trafficking_sheet),
+    ]:
+        content = await upload.read()
+        files_data[label] = excel_to_dict(content)
+
+    dv360_data = map_to_dv360(files_data)
+
+    session_id = str(uuid.uuid4())
+    sessions[session_id] = files_data
+
+    return JSONResponse({"session_id": session_id, "dv360_data": dv360_data})
+
+
+def create_dv360_csv(dv360_data: dict) -> bytes:
+    """Generate DV360 SDF v9.2 InsertionOrders CSV."""
+    output = io.StringIO()
+    writer = csv.DictWriter(
+        output,
+        fieldnames=DV360_IO_COLUMNS,
+        extrasaction="ignore",
+        lineterminator="\n"
+    )
+    writer.writeheader()
+    for row in dv360_data.get("insertion_orders", []):
+        writer.writerow(row)
+    return output.getvalue().encode("utf-8")
+
+
+@app.post("/export/dv360")
+async def export_dv360(request: Request):
+    body = await request.json()
+    dv360_data = body["dv360_data"]
+    csv_bytes = create_dv360_csv(dv360_data)
+
+    return StreamingResponse(
+        io.BytesIO(csv_bytes),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=InsertionOrders.csv"}
     )

@@ -20,9 +20,9 @@
     .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
     .header p { color: #666; font-size: 14px; }
     .dsps { display: flex; gap: 8px; margin-top: 12px; }
-    .dsp-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .dsp-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; background: #f1f3f4; color: #666; }
     .dsp-badge.active { background: #e8f0fe; color: #1a73e8; }
-    .dsp-badge.soon { background: #f1f3f4; color: #999; }
+    .dsp-badge.soon { background: #f1f3f4; color: #999; cursor: default; }
 
     /* ── Steps ── */
     .steps { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
@@ -183,10 +183,10 @@
 
   <div class="header">
     <h1>Campaign Builder</h1>
-    <p>Upload your 4 media files to generate a ready-to-import TTD bulk sheet</p>
+    <p>Upload your 4 media files to generate a ready-to-import bulk sheet</p>
     <div class="dsps">
-      <span class="dsp-badge active">The Trade Desk</span>
-      <span class="dsp-badge soon">DV360 (soon)</span>
+      <button class="dsp-badge active" id="dspTTD" onclick="selectDSP('ttd')">The Trade Desk</button>
+      <button class="dsp-badge" id="dspDV360" onclick="selectDSP('dv360')">DV360</button>
       <span class="dsp-badge soon">Amazon DSP (soon)</span>
     </div>
   </div>
@@ -299,9 +299,11 @@
   // ── State ──────────────────────────────────────────────────────────────
   let sessionId = null;
   let ttdData = null;
+  let dv360Data = null;
+  let activeDSP = 'ttd';
   const revisions = [];
 
-  const TAB_LABELS = {
+  const TTD_TAB_LABELS = {
     campaign_sets: 'Campaign Sets',
     campaigns: 'Campaigns',
     ad_groups: 'Ad Groups',
@@ -309,6 +311,19 @@
     campaign_fees: 'Campaign Fees',
     ad_group_fees: 'Ad Group Fees'
   };
+
+  const DV360_TAB_LABELS = {
+    insertion_orders: 'Insertion Orders'
+  };
+
+  // ── DSP Selector ────────────────────────────────────────────────────────
+  function selectDSP(dsp) {
+    activeDSP = dsp;
+    document.getElementById('dspTTD').classList.toggle('active', dsp === 'ttd');
+    document.getElementById('dspDV360').classList.toggle('active', dsp === 'dv360');
+    const btn = document.getElementById('generateBtn');
+    btn.textContent = dsp === 'dv360' ? 'Generate DV360 Insertion Orders' : 'Generate Bulk Upload Sheet';
+  }
 
   // ── Helpers ─────────────────────────────────────────────────────────────
   function fileChosen(input, placeholderId, selectedId) {
@@ -348,6 +363,8 @@
     const panels = document.getElementById('tabPanels');
     nav.innerHTML = '';
     panels.innerHTML = '';
+
+    const TAB_LABELS = activeDSP === 'dv360' ? DV360_TAB_LABELS : TTD_TAB_LABELS;
 
     let firstActive = true;
     for (const [key, label] of Object.entries(TAB_LABELS)) {
@@ -400,24 +417,37 @@
 
     try {
       const formData = new FormData(e.target);
-      const res = await fetch('/generate', { method: 'POST', body: formData });
+      const endpoint = activeDSP === 'dv360' ? '/generate/dv360' : '/generate';
+      const res = await fetch(endpoint, { method: 'POST', body: formData });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
 
       sessionId = data.session_id;
-      ttdData = data.ttd_data;
+      if (activeDSP === 'dv360') {
+        dv360Data = data.dv360_data;
+      } else {
+        ttdData = data.ttd_data;
+      }
 
       hideStatus('uploadStatus');
       document.getElementById('uploadSection').style.display = 'none';
       document.getElementById('previewSection').style.display = 'block';
+
+      // Show/hide revision panel — DV360 is rule-based, no AI revision yet
+      document.querySelector('.revision-card').style.display = activeDSP === 'dv360' ? 'none' : 'block';
+
+      // Update export button label
+      const exportBtn = document.getElementById('exportBtn');
+      exportBtn.textContent = activeDSP === 'dv360' ? 'Download CSV' : 'Download Excel';
+
       setStep(2);
-      renderPreview(ttdData);
+      renderPreview(activeDSP === 'dv360' ? dv360Data : ttdData);
     } catch (err) {
       showError('uploadStatus', err.message);
     }
 
     btn.disabled = false;
-    btn.textContent = 'Generate Bulk Upload Sheet';
+    btn.textContent = activeDSP === 'dv360' ? 'Generate DV360 Insertion Orders' : 'Generate Bulk Upload Sheet';
   });
 
   // ── Revise ──────────────────────────────────────────────────────────────
@@ -470,33 +500,49 @@
     btn.textContent = 'Exporting…';
 
     try {
-      const res = await fetch('/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ttd_data: ttdData })
-      });
-      if (!res.ok) throw new Error(await res.text());
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'TTD_Campaign_Bulk_Upload.xlsx';
-      a.click();
-      URL.revokeObjectURL(url);
+      if (activeDSP === 'dv360') {
+        const res = await fetch('/export/dv360', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dv360_data: dv360Data })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'InsertionOrders.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const res = await fetch('/export', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ttd_data: ttdData })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'TTD_Campaign_Bulk_Upload.xlsx';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
       setStep(3);
     } catch (err) {
       alert('Export error: ' + err.message);
     }
 
     btn.disabled = false;
-    btn.textContent = 'Download Excel';
+    btn.textContent = activeDSP === 'dv360' ? 'Download CSV' : 'Download Excel';
   }
 
   // ── Start over ───────────────────────────────────────────────────────────
   function startOver() {
     sessionId = null;
     ttdData = null;
+    dv360Data = null;
     revisions.length = 0;
     document.getElementById('uploadSection').style.display = 'block';
     document.getElementById('previewSection').style.display = 'none';
