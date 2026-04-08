@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Platform Intelligence — Campaign Builder</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 32px 20px;
+      color: #1a1a2e;
+    }
+    .container { max-width: 980px; margin: 0 auto; }
+
+    .nav { margin-bottom: 20px; font-size: 13px; }
+    .nav a { color: #1a73e8; text-decoration: none; }
+    .nav a:hover { text-decoration: underline; }
+
+    /* Header */
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { color: #555; font-size: 14px; line-height: 1.6; max-width: 620px; }
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 28px 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.6px;
+      color: #888; margin-bottom: 18px;
+    }
+
+    /* Hierarchy diagram */
+    .hierarchy {
+      display: flex; align-items: stretch; gap: 0;
+      border: 1px solid #e8eaed; border-radius: 10px; overflow: hidden;
+      margin-bottom: 0;
+    }
+    .h-layer {
+      flex: 1; padding: 16px 18px;
+      border-right: 1px solid #e8eaed;
+      position: relative;
+    }
+    .h-layer:last-child { border-right: none; }
+    .h-layer-num {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: #aaa; margin-bottom: 4px;
+    }
+    .h-layer-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .h-layer-desc { font-size: 12px; color: #666; line-height: 1.4; }
+    .h-layer.l1 { background: #f8f9fa; }
+    .h-layer.l2 { background: #f0f4ff; }
+    .h-layer.l2 .h-layer-name { color: #1a73e8; }
+    .h-layer.l3 { background: #e8f5e9; }
+    .h-layer.l3 .h-layer-name { color: #1e7e34; }
+    .h-layer.l4 { background: #fff3e0; }
+    .h-layer.l4 .h-layer-name { color: #e65100; }
+    .h-layer.l5 { background: #fce4ec; }
+    .h-layer.l5 .h-layer-name { color: #c62828; }
+    .arrow-note {
+      font-size: 11px; color: #888; margin-top: 14px;
+      text-align: center; font-style: italic;
+    }
+
+    /* Explorer */
+    .explorer-controls { display: flex; gap: 14px; margin-bottom: 20px; }
+    .explorer-controls select {
+      padding: 9px 14px;
+      border: 1.5px solid #d0d5dd; border-radius: 8px;
+      font-size: 13px; font-family: inherit;
+      background: white; cursor: pointer;
+      color: #1a1a2e;
+    }
+    .explorer-controls select:focus { outline: none; border-color: #1a73e8; }
+
+    /* Result table */
+    .result-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .result-table th {
+      background: #f8f9fa; text-align: left;
+      padding: 9px 14px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px; color: #666;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .result-table td {
+      padding: 9px 14px; border-bottom: 1px solid #f0f0f0;
+      vertical-align: middle;
+    }
+    .result-table tr:last-child td { border-bottom: none; }
+    .result-table tr:hover td { background: #fafbff; }
+    .field-name { font-family: monospace; font-size: 12px; color: #333; }
+    .field-value { font-weight: 600; color: #1a1a2e; }
+    .source-badge {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 600;
+    }
+    .src-platform  { background: #f3e8ff; color: #6b21a8; }
+    .src-global    { background: #e8eaed; color: #444; }
+    .src-channel   { background: #e8f0fe; color: #1a56db; }
+    .src-lob       { background: #dcfce7; color: #15803d; }
+    .src-lob-ch    { background: #fef3c7; color: #b45309; }
+    .src-input     { background: #ffe4e6; color: #be123c; }
+
+    /* Channel cards grid */
+    .channel-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    }
+    .channel-card {
+      border: 1.5px solid #e8eaed; border-radius: 10px;
+      padding: 16px 18px; background: #fafbff;
+    }
+    .channel-tag {
+      display: inline-block;
+      padding: 3px 10px; border-radius: 14px;
+      font-size: 11px; font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .tag-CTV     { background: #e8f0fe; color: #1a56db; }
+    .tag-OLV     { background: #dbeafe; color: #1d4ed8; }
+    .tag-Display { background: #dcfce7; color: #15803d; }
+    .tag-Native  { background: #f0fdf4; color: #166534; }
+    .tag-Audio   { background: #fef9c3; color: #854d0e; }
+    .tag-DOOH    { background: #fce7f3; color: #9d174d; }
+    .kv-list { list-style: none; }
+    .kv-list li {
+      display: flex; justify-content: space-between;
+      font-size: 12px; padding: 4px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .kv-list li:last-child { border-bottom: none; }
+    .kv-list .k { color: #666; }
+    .kv-list .v { font-weight: 600; color: #1a1a2e; text-align: right; }
+
+    /* LOB table */
+    .lob-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .lob-table th {
+      background: #f8f9fa; text-align: left;
+      padding: 9px 14px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px; color: #666;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .lob-table td {
+      padding: 9px 14px; border-bottom: 1px solid #f0f0f0;
+    }
+    .lob-table tr:last-child td { border-bottom: none; }
+    .lob-table tr:hover td { background: #fafbff; }
+    .lob-name { font-weight: 700; }
+
+    /* Channel normalization */
+    .norm-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    }
+    .norm-row {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; padding: 8px 12px;
+      background: #f8f9fa; border-radius: 8px;
+    }
+    .norm-input { color: #555; flex: 1; }
+    .norm-arrow { color: #aaa; font-size: 14px; }
+    .norm-output {
+      font-weight: 700; font-family: monospace;
+      background: #e8f0fe; color: #1a56db;
+      padding: 2px 8px; border-radius: 6px; font-size: 11px;
+    }
+
+    /* Platform defaults */
+    .platform-section { margin-bottom: 20px; }
+    .platform-section h4 {
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      color: #888; margin-bottom: 10px;
+    }
+    .platform-kv {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    }
+    .platform-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; padding: 7px 12px;
+      background: #f8f9fa; border-radius: 7px;
+    }
+    .platform-row .k { color: #555; font-family: monospace; font-size: 11px; }
+    .platform-row .v {
+      font-weight: 600; color: #6b21a8;
+      background: #f3e8ff; padding: 1px 7px;
+      border-radius: 6px; font-size: 11px;
+    }
+    .platform-row .v-empty { color: #bbb; font-size: 11px; font-style: italic; }
+
+    /* Feedback rules */
+    .feedback-empty { color: #aaa; font-size: 13px; font-style: italic; }
+    .rule-card {
+      border: 1px solid #e8eaed; border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 10px;
+      background: #fafbff;
+    }
+    .rule-text { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .rule-meta { display: flex; gap: 8px; font-size: 11px; color: #666; }
+    .rule-tag {
+      background: #f1f3f4; padding: 2px 8px;
+      border-radius: 8px; font-weight: 600;
+    }
+
+    /* Section divider */
+    .section-intro {
+      font-size: 13px; color: #555; margin-bottom: 18px; line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 680px) {
+      .channel-grid { grid-template-columns: 1fr 1fr; }
+      .norm-grid    { grid-template-columns: 1fr; }
+      .platform-kv  { grid-template-columns: 1fr; }
+      .hierarchy    { flex-direction: column; }
+      .h-layer      { border-right: none; border-bottom: 1px solid #e8eaed; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav"><a href="/">← Back to Campaign Builder</a></div>
+
+  <div class="page-header">
+    <h1>Platform Intelligence</h1>
+    <p>
+      Every field a trader fills in by memory — channel KPIs, bid ranges, vertical objectives,
+      platform technical settings — is encoded here. Campaign Builder applies this knowledge
+      automatically, in a defined order of precedence, so every campaign starts from the same
+      expert baseline.
+    </p>
+  </div>
+
+
+  <!-- ── 1. Knowledge Hierarchy ─────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">How defaults are applied</div>
+    <p class="section-intro">
+      Rules stack in layers. More specific rules win. A field set by <em>LOB × Channel</em>
+      overrides the same field set by <em>Channel alone</em>, which overrides <em>Global</em>.
+    </p>
+    <div class="hierarchy">
+      <div class="h-layer l1">
+        <div class="h-layer-num">Layer 1</div>
+        <div class="h-layer-name">Platform Defaults</div>
+        <div class="h-layer-desc">TTD technical fields. Never in source documents. Always applied first.</div>
+      </div>
+      <div class="h-layer l2">
+        <div class="h-layer-num">Layer 2</div>
+        <div class="h-layer-name">Global</div>
+        <div class="h-layer-desc">Applies to every campaign regardless of channel or vertical.</div>
+      </div>
+      <div class="h-layer l3">
+        <div class="h-layer-num">Layer 3</div>
+        <div class="h-layer-name">By Channel</div>
+        <div class="h-layer-desc">KPIs, bids, and marketplace differ by channel (CTV vs Display vs Audio…).</div>
+      </div>
+      <div class="h-layer l4">
+        <div class="h-layer-num">Layer 4</div>
+        <div class="h-layer-name">By LOB</div>
+        <div class="h-layer-desc">Objectives and goals differ by vertical (Auto vs Retail vs Healthcare…).</div>
+      </div>
+      <div class="h-layer l5">
+        <div class="h-layer-num">Layer 5 — wins</div>
+        <div class="h-layer-name">LOB × Channel</div>
+        <div class="h-layer-desc">Most specific. Expert-level overrides for a known vertical + channel combination.</div>
+      </div>
+    </div>
+    <p class="arrow-note">Any value from a source document (media plan, brief, etc.) always takes priority over all layers above.</p>
+  </div>
+
+
+  <!-- ── 2. Interactive Explorer ─────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Explorer — see what the tool knows</div>
+    <p class="section-intro">
+      Select a channel and line of business to see every default that would be applied,
+      and which layer it comes from.
+    </p>
+    <div class="explorer-controls">
+      <select id="sel-channel" onchange="renderExplorer()">
+        <option value="">— Channel —</option>
+        {% for ch in defaults.by_channel.keys() %}
+        <option value="{{ ch }}">{{ ch }}</option>
+        {% endfor %}
+      </select>
+      <select id="sel-lob" onchange="renderExplorer()">
+        <option value="">— Line of Business —</option>
+        {% for lob in defaults.by_lob.keys() %}
+        <option value="{{ lob }}">{{ lob }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div id="explorer-result">
+      <p style="color:#aaa;font-size:13px;font-style:italic;">Select a channel and LOB above to see applied defaults.</p>
+    </div>
+  </div>
+
+
+  <!-- ── 3. Channel Defaults ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Channel defaults</div>
+    <p class="section-intro">
+      Each channel has its own KPI, bid range, marketplace, and primary channel.
+      A trader knows these without looking them up — now the tool does too.
+    </p>
+    <div class="channel-grid">
+      {% for channel, vals in defaults.by_channel.items() %}
+      <div class="channel-card">
+        <span class="channel-tag tag-{{ channel }}">{{ channel }}</span>
+        <ul class="kv-list">
+          {% for k, v in vals.items() %}
+          <li>
+            <span class="k">{{ k }}</span>
+            <span class="v">
+              {% if v is number %}
+                {% if k in ["Goal Value", "Base Bid", "Max Bid"] %}${{ "%.2f"|format(v) }}{% else %}{{ v }}{% endif %}
+              {% else %}{{ v }}{% endif %}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ── 4. LOB Defaults ────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Vertical (LOB) defaults</div>
+    <p class="section-intro">
+      Each vertical has a natural objective and primary KPI. When a campaign's line of business
+      is known, the tool adjusts automatically.
+    </p>
+    <table class="lob-table">
+      <thead>
+        <tr>
+          <th>Line of Business</th>
+          <th>Objective</th>
+          <th>Goal Type</th>
+          <th>Pacing</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lob, vals in defaults.by_lob.items() %}
+        <tr>
+          <td class="lob-name">{{ lob }}</td>
+          <td>{{ vals.get("Objective", "—") }}</td>
+          <td>{{ vals.get("Goals", "—") }}</td>
+          <td>{{ vals.get("Pacing Mode", "—") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ── 5. LOB × Channel combinations ─────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">LOB × Channel overrides — expert knowledge</div>
+    <p class="section-intro">
+      These are the most precise rules: when both the vertical and the channel are known,
+      the tool can apply the exact KPI and bid range a trader with deep platform experience
+      would set.
+    </p>
+    {% for lob, channels in defaults.by_lob_and_channel.items() %}
+    <div style="margin-bottom:20px;">
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:10px;color:#1a1a2e;">{{ lob }}</h4>
+      <div class="channel-grid">
+        {% for ch, vals in channels.items() %}
+        <div class="channel-card">
+          <span class="channel-tag tag-{{ ch }}">{{ ch }}</span>
+          <ul class="kv-list">
+            {% for k, v in vals.items() %}
+            <li>
+              <span class="k">{{ k }}</span>
+              <span class="v">
+                {% if v is number %}
+                  {% if k in ["Goal Value", "Base Bid", "Max Bid"] %}${{ "%.2f"|format(v) }}{% else %}{{ v }}{% endif %}
+                {% else %}{{ v }}{% endif %}
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+
+  <!-- ── 6. Global Defaults ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Global defaults — always applied</div>
+    <p class="section-intro">These settings apply to every campaign, regardless of channel or LOB.</p>
+    <div class="platform-kv">
+      {% for k, v in defaults.global.items() %}
+      <div class="platform-row">
+        <span class="k">{{ k }}</span>
+        {% if v %}
+        <span class="v" style="background:#e8f0fe;color:#1a56db;">{{ v }}</span>
+        {% else %}
+        <span class="v-empty">not set</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+  <!-- ── 7. Platform Technical Defaults ────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Platform technical defaults — TTD internal settings</div>
+    <p class="section-intro">
+      These fields exist in TTD's bulk upload format but never appear in any source document.
+      Traders know which values to use from platform experience — these are the base layer.
+    </p>
+
+    {% if platform_defaults.campaigns %}
+    <div class="platform-section">
+      <h4>Campaigns tab</h4>
+      <div class="platform-kv">
+        {% for k, v in platform_defaults.campaigns.items() %}
+        <div class="platform-row">
+          <span class="k">{{ k }}</span>
+          {% if v %}
+          <span class="v">{{ v }}</span>
+          {% else %}
+          <span class="v-empty">account-specific</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if platform_defaults.ad_groups %}
+    <div class="platform-section">
+      <h4>Ad Groups tab</h4>
+      <div class="platform-kv">
+        {% for k, v in platform_defaults.ad_groups.items() %}
+        <div class="platform-row">
+          <span class="k">{{ k }}</span>
+          {% if v %}
+          <span class="v">{{ v }}</span>
+          {% else %}
+          <span class="v-empty">account-specific</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+
+  <!-- ── 8. Channel Normalization ───────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Channel normalization — plain language → platform format</div>
+    <p class="section-intro">
+      Source documents use inconsistent channel names. The tool recognizes all known
+      variations and maps them to the correct TTD canonical value.
+    </p>
+    <div class="norm-grid">
+      <div class="norm-row"><span class="norm-input">"Video CTV" / "Connected TV" / "Streaming TV" / "CTV"</span><span class="norm-arrow">→</span><span class="norm-output">CTV</span></div>
+      <div class="norm-row"><span class="norm-input">"Video OLV" / "OLV" / "Online Video" / "Pre-roll"</span><span class="norm-arrow">→</span><span class="norm-output">OLV</span></div>
+      <div class="norm-row"><span class="norm-input">"Display" / "Banner"</span><span class="norm-arrow">→</span><span class="norm-output">Display</span></div>
+      <div class="norm-row"><span class="norm-input">"Native"</span><span class="norm-arrow">→</span><span class="norm-output">Native</span></div>
+      <div class="norm-row"><span class="norm-input">"Streaming Audio" / "Audio Podcasts" / "Audio" / "Connected Car" / "Connected Home"</span><span class="norm-arrow">→</span><span class="norm-output">Audio</span></div>
+      <div class="norm-row"><span class="norm-input">"DOOH" / "Out of Home" / "Digital OOH"</span><span class="norm-arrow">→</span><span class="norm-output">DOOH</span></div>
+    </div>
+  </div>
+
+
+  <!-- ── 9. Learned Rules ───────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Learned rules — corrections captured from trader feedback</div>
+    <p class="section-intro">
+      When a trader corrects a mapping, the tool extracts a generalizable rule and stores it.
+      These rules are applied to all future campaigns automatically.
+    </p>
+    {% if feedback_rules %}
+      {% for rule in feedback_rules %}
+      <div class="rule-card">
+        <div class="rule-text">{{ rule.rule }}</div>
+        <div class="rule-meta">
+          <span class="rule-tag">{{ rule.field }}</span>
+          {% if rule.channel != "all" %}<span class="rule-tag">{{ rule.channel }}</span>{% endif %}
+          {% if rule.lob != "all" %}<span class="rule-tag">{{ rule.lob }}</span>{% endif %}
+          {% if rule.date %}<span style="margin-left:auto;">Added {{ rule.date }}</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="feedback-empty">No learned rules yet. Rules are captured automatically when a trader corrects a campaign mapping using the revision tool.</p>
+    {% endif %}
+  </div>
+
+</div><!-- /container -->
+
+
+<script>
+// ── defaults data (injected from server) ────────────────────────────────────
+const DEFAULTS = {{ defaults | tojson }};
+
+function renderExplorer() {
+  const ch  = document.getElementById("sel-channel").value;
+  const lob = document.getElementById("sel-lob").value;
+  const el  = document.getElementById("explorer-result");
+
+  if (!ch && !lob) {
+    el.innerHTML = '<p style="color:#aaa;font-size:13px;font-style:italic;">Select a channel and LOB above to see applied defaults.</p>';
+    return;
+  }
+
+  // Build merged defaults with source tracking (most specific wins)
+  const merged = {}; // field -> { value, source, srcClass }
+
+  // Layer 2: global
+  for (const [k, v] of Object.entries(DEFAULTS.global || {})) {
+    merged[k] = { value: v, source: "Global", srcClass: "src-global" };
+  }
+
+  // Layer 3: by_channel
+  if (ch && DEFAULTS.by_channel?.[ch]) {
+    for (const [k, v] of Object.entries(DEFAULTS.by_channel[ch])) {
+      merged[k] = { value: v, source: `Channel: ${ch}`, srcClass: "src-channel" };
+    }
+  }
+
+  // Layer 4: by_lob
+  if (lob && DEFAULTS.by_lob?.[lob]) {
+    for (const [k, v] of Object.entries(DEFAULTS.by_lob[lob])) {
+      merged[k] = { value: v, source: `LOB: ${lob}`, srcClass: "src-lob" };
+    }
+  }
+
+  // Layer 5: by_lob_and_channel (most specific, wins)
+  if (lob && ch && DEFAULTS.by_lob_and_channel?.[lob]?.[ch]) {
+    for (const [k, v] of Object.entries(DEFAULTS.by_lob_and_channel[lob][ch])) {
+      merged[k] = { value: v, source: `${lob} × ${ch}`, srcClass: "src-lob-ch" };
+    }
+  }
+
+  if (Object.keys(merged).length === 0) {
+    el.innerHTML = '<p style="color:#aaa;font-size:13px;font-style:italic;">No defaults found for this combination.</p>';
+    return;
+  }
+
+  const fmt = (k, v) => {
+    if (typeof v === "number" && ["Goal Value","Base Bid","Max Bid"].includes(k))
+      return `$${v.toFixed(2)}`;
+    return v !== null && v !== "" ? v : '<span style="color:#bbb;font-style:italic">not set</span>';
+  };
+
+  const rows = Object.entries(merged)
+    .map(([k, info]) => `
+      <tr>
+        <td class="field-name">${k}</td>
+        <td class="field-value">${fmt(k, info.value)}</td>
+        <td><span class="source-badge ${info.srcClass}">${info.source}</span></td>
+      </tr>`)
+    .join("");
+
+  el.innerHTML = `
+    <table class="result-table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Value applied</th>
+          <th>Source layer</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+</script>
+</body>
+</html>

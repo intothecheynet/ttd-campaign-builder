@@ -271,6 +271,19 @@ async def mapping_doc(request: Request):
 
 
 
+@app.get("/knowledge", response_class=HTMLResponse)
+async def knowledge(request: Request):
+    defaults          = load_defaults()
+    platform_defaults = load_platform_defaults()
+    feedback_rules    = load_feedback()
+    return templates.TemplateResponse("knowledge.html", {
+        "request":          request,
+        "defaults":         defaults,
+        "platform_defaults": platform_defaults,
+        "feedback_rules":   feedback_rules,
+    })
+
+
 @app.post("/generate")
 async def generate_ttd(
     media_brief: UploadFile = File(...),
