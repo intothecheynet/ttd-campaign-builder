@@ -11,6 +11,7 @@ from fastapi.templating import Jinja2Templates
 import anthropic
 import openpyxl
 from dv360_mapper import map_to_dv360, DV360_IO_COLUMNS
+from ttd_filter.filter import filter_all_inputs
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -269,6 +270,56 @@ async def mapping_doc(request: Request):
 </body>
 </html>""")
 
+
+
+@app.get("/filter", response_class=HTMLResponse)
+async def filter_page(request: Request):
+    return templates.TemplateResponse("filter.html", {"request": request})
+
+
+@app.post("/filter/run")
+async def run_filter(
+    media_brief: UploadFile = File(...),
+    media_plan: UploadFile = File(...),
+    audience_matrix: UploadFile = File(...),
+    trafficking_sheet: UploadFile = File(...)
+):
+    results = filter_all_inputs(
+        media_brief_bytes=       await media_brief.read(),
+        media_plan_bytes=        await media_plan.read(),
+        audience_matrix_bytes=   await audience_matrix.read(),
+        trafficking_sheet_bytes= await trafficking_sheet.read(),
+    )
+
+    # Strip raw bytes from the JSON response (not serialisable)
+    summary = {
+        label: {
+            "summary": data["summary"],
+            "json":    data["json"],
+        }
+        for label, data in results.items()
+    }
+
+    # Store in session for the download step
+    filter_session_id = str(uuid.uuid4())
+    sessions[filter_session_id] = {label: data["excel"] for label, data in results.items()}
+
+    return JSONResponse({"session_id": filter_session_id, "results": summary})
+
+
+@app.get("/filter/download/{session_id}/{file_label}")
+async def download_filtered(session_id: str, file_label: str):
+    session = sessions.get(session_id, {})
+    excel_bytes = session.get(file_label)
+    if not excel_bytes:
+        return JSONResponse({"error": "File not found"}, status_code=404)
+
+    filename = f"{file_label}_TTD_only.xlsx"
+    return StreamingResponse(
+        io.BytesIO(excel_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @app.get("/knowledge", response_class=HTMLResponse)
