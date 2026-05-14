@@ -1,0 +1,103 @@
+{
+  "_instructions": "Amazon DSP business defaults. Applied in order: global → by_channel → by_lob → by_lob_and_channel (most specific wins). The mapper passes Amazon Media Type as the channel key, so by_channel keys must be one of: 'Streaming TV', 'Online Video', 'Display', 'Audio'.",
+
+  "global": {
+    "Advertiser ID":              "",
+    "Advertiser name":            "",
+    "Active/Inactive":            "Active",
+    "Bidding Priority":           "Prioritize spending full budget",
+    "Budget Management Strategy": "Automate budget allocation",
+    "Budget Rollover":            "Do not change flight budgets",
+    "Agency fee":                 "",
+    "Pacing profile":             "Evenly",
+    "Catch-up boost":             "None",
+    "Reach similar audiences":    "No",
+    "Active/Inactive (line)":     "Book/Deliver"
+  },
+
+  "by_channel": {
+    "Streaming TV": {
+      "Goal and Goal KPI":   "Awareness - Reach",
+      "Target KPI":          "",
+      "Base supply bid":     35.00,
+      "Maximum average CPM": 65.00,
+      "Product categories":  "",
+      "Supply source":       "",
+      "Device type":         "Connected TV",
+      "Environment Type":    "App",
+      "Mobile environment":  "App",
+      "Video initiation type": "Autoplay only",
+      "In-stream position":  "In-stream only",
+      "Video player size":   "Any",
+      "Video completion":    "70%+"
+    },
+
+    "Online Video": {
+      "Goal and Goal KPI":   "Awareness - Reach",
+      "Target KPI":          "",
+      "Base supply bid":     15.00,
+      "Maximum average CPM": 30.00,
+      "Product categories":  "",
+      "Supply source":       "",
+      "Device type":         "Desktop and mobile (web)",
+      "Environment Type":    "Both",
+      "Mobile environment":  "Both",
+      "Video initiation type": "Any",
+      "In-stream position":  "In-stream and out-stream",
+      "Video player size":   "Any",
+      "Video completion":    "No targeting"
+    },
+
+    "Display": {
+      "Goal and Goal KPI":   "Consideration - Click through rate (CTR)",
+      "Target KPI":          0.10,
+      "Base supply bid":     5.00,
+      "Maximum average CPM": 12.00,
+      "Product categories":  "",
+      "Supply source":       "",
+      "Device type":         "Desktop and mobile (web)",
+      "Environment Type":    "Both"
+    },
+
+    "Audio": {
+      "Goal and Goal KPI":   "Awareness - Reach",
+      "Target KPI":          "",
+      "Base supply bid":     10.00,
+      "Maximum average CPM": 20.00,
+      "Product categories":  "",
+      "Supply source":       "",
+      "Device type":         "All devices (desktop, mobile, connected TV, smart speaker)",
+      "Content and Genre Blocking": "",
+      "Category Blocking":   "",
+      "Content Blocking":    "Exclude explicit content"
+    }
+  },
+
+  "by_lob": {
+    "Auto":       { "Goal and Goal KPI": "Awareness - Reach" },
+    "Retail":     { "Goal and Goal KPI": "Conversion - Cost per acquisition (CPA)" },
+    "Financial":  { "Goal and Goal KPI": "Consideration - Click through rate (CTR)" },
+    "Healthcare": { "Goal and Goal KPI": "Awareness - Reach" },
+    "CPG":        { "Goal and Goal KPI": "Awareness - Reach" },
+    "Tech":       { "Goal and Goal KPI": "Consideration - Click through rate (CTR)" }
+  },
+
+  "by_lob_and_channel": {
+    "Auto": {
+      "Streaming TV": { "Base supply bid": 38.00, "Maximum average CPM": 70.00 },
+      "Display":      { "Base supply bid": 4.50,  "Maximum average CPM": 10.00 }
+    },
+    "Retail": {
+      "Streaming TV": { "Base supply bid": 32.00, "Maximum average CPM": 60.00 },
+      "Display":      { "Base supply bid": 6.00,  "Maximum average CPM": 13.00,
+                        "Goal and Goal KPI": "Conversion - Cost per acquisition (CPA)" }
+    },
+    "Financial": {
+      "Display":      { "Base supply bid": 7.00,  "Maximum average CPM": 14.00 }
+    },
+    "Healthcare": {
+      "Streaming TV": { "Base supply bid": 40.00, "Maximum average CPM": 75.00 },
+      "Display":      { "Base supply bid": 5.50,  "Maximum average CPM": 11.00 }
+    }
+  }
+}
