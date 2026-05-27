@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "campaign-builder"
+version = "0.1.0"
+description = "TTD / DV360 / Amazon DSP rule-based campaign mapper"
+requires-python = ">=3.10"
+dependencies = [
+    "openpyxl",
+    "anthropic",
+]
+
+[tool.setuptools.packages.find]
+include = ["campaign_builder*", "ttd_filter*"]
+
+[tool.setuptools.package-data]
+campaign_builder = ["*.json"]
