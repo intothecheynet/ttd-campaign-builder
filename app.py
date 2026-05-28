@@ -12,7 +12,7 @@ import anthropic
 import openpyxl
 
 from campaign_builder.shared_utils import excel_to_dict
-from campaign_builder.mapper import map_to_ttd
+from campaign_builder.ttd_mapper import map_to_ttd
 from campaign_builder.dv360_mapper import map_to_dv360, DV360_IO_COLUMNS
 from campaign_builder.amazon_mapper import map_to_amazon
 from ttd_filter.filter import filter_all_inputs
@@ -23,8 +23,8 @@ client = anthropic.Anthropic()
 
 TTD_TEMPLATE_PATH  = os.path.expanduser("~/Downloads/TTD BULKSHEET.xlsx")
 _PKG               = os.path.join(os.path.dirname(__file__), "campaign_builder")
-DEFAULTS_PATH      = os.path.join(_PKG, "defaults.json")
-PLATFORM_DEFAULTS_PATH = os.path.join(_PKG, "platform_defaults.json")
+DEFAULTS_PATH          = os.path.join(_PKG, "ttd_defaults.json")
+PLATFORM_DEFAULTS_PATH = os.path.join(_PKG, "ttd_platform_defaults.json")
 FEEDBACK_PATH      = os.path.join(os.path.dirname(__file__), "feedback.json")
 MAPPING_PATH       = os.path.join(os.path.dirname(__file__), "MAPPING_REFERENCE.md")
 

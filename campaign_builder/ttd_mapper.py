@@ -21,8 +21,8 @@ from .shared_utils import (
 )
 
 _DIR = os.path.dirname(__file__)
-DEFAULTS_PATH          = os.path.join(_DIR, "defaults.json")
-PLATFORM_DEFAULTS_PATH = os.path.join(_DIR, "platform_defaults.json")
+DEFAULTS_PATH          = os.path.join(_DIR, "ttd_defaults.json")
+PLATFORM_DEFAULTS_PATH = os.path.join(_DIR, "ttd_platform_defaults.json")
 
 # DSP column values that route rows to TTD
 TTD_DSP_NAMES = {"ttd"}
