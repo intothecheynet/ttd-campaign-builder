@@ -1,16 +1,20 @@
 # Campaign Builder — Web App
 
-FastAPI web app that converts 4 agency Excel inputs (Media Brief, Media Plan, Audience Matrix, Trafficking Sheet) into platform-specific bulk upload files for **TTD**, **DV360**, and **Amazon DSP**.
+FastAPI web app that converts 4 agency input files (Media Brief, Media Plan, Audience Matrix, Trafficking Sheet) into platform-specific bulk upload files for **The Trade Desk**, **DV360**, and **Amazon DSP**.
 
 ---
 
-## Platform Support
+## What It Does
 
-| Platform | Status | Output |
+Upload your 4 standard Excel inputs → get back a ready-to-upload bulk sheet for each DSP.
+
+| Platform | Output file | Route |
 |---|---|---|
-| **The Trade Desk (TTD)** | ✅ Full | Excel bulk upload sheet (6 tabs) |
-| **DV360** | ✅ Full | SDF v9.2 Insertion Orders CSV |
-| **Amazon DSP** | ✅ Full | Multi-tab Excel bulksheet |
+| The Trade Desk (TTD) | Excel bulk upload (6 tabs) | `/generate` + `/export` |
+| Google DV360 | SDF v9.2 Insertion Orders CSV | `/generate/dv360` + `/export/dv360` |
+| Amazon DSP | Excel bulksheet (6 tabs) | `/generate/amazon` + `/export/amazon` |
+
+TTD mapping can run in two modes — AI (Claude, handles ambiguous inputs) or rule-based (faster, no API cost, fully auditable). DV360 and Amazon always use the rule-based mapper.
 
 ---
 
@@ -19,100 +23,127 @@ FastAPI web app that converts 4 agency Excel inputs (Media Brief, Media Plan, Au
 ```
 ttd-campaign-builder/
 │
-│  ── ENTRY POINT ──────────────────────────────────────────────────────────
-├── app.py                        [TTD + DV360]   FastAPI web server
-│                                                 Routes: /generate (TTD),
-│                                                 /generate/dv360, /export,
-│                                                 /export/dv360, /filter, /knowledge
+│  ── WEB APP ────────────────────────────────────────────────────────────────
+├── app.py                    FastAPI server. All routes live here.
+│                             Imports mappers from campaign_builder/,
+│                             reads templates from templates/.
 │
-│  ── MAPPERS (rule-based, no AI required) ──────────────────────────────────
-├── mapper.py                     [TTD ONLY]      Parses all 4 inputs → TTD bulk
-│                                                 upload format. Campaign Sets,
-│                                                 Campaigns, Ad Groups, Budget Flights.
+│  ── MAPPER PACKAGE ─────────────────────────────────────────────────────────
+├── campaign_builder/         pip-installable Python package.
+│   │                         See campaign_builder/README.md for full detail.
+│   │
+│   ├── shared_utils.py       Shared parser functions used by all 3 mappers:
+│   │                         parse_media_brief, parse_media_plan,
+│   │                         parse_trafficking_sheet, extract_lob,
+│   │                         build_campaign_name, normalise_channel,
+│   │                         parse_flight_dates, apply_platform_defaults,
+│   │                         get_default, excel_to_dict.
+│   │
+│   ├── ttd_mapper.py         [TTD ONLY]     Maps inputs → TTD bulk upload format.
+│   ├── ttd_defaults.json     [TTD ONLY]     Business defaults by channel + LOB.
+│   ├── ttd_platform_defaults.json           TTD technical field defaults.
+│   │                         [TTD ONLY]     Applied as base layer to all rows.
+│   │
+│   ├── dv360_mapper.py       [DV360 ONLY]   Maps inputs → DV360 SDF v9.2
+│   │                                        Insertion Orders CSV.
+│   │
+│   ├── amazon_mapper.py      [AMAZON DSP]   Maps inputs → Amazon DSP bulksheet.
+│   ├── amazon_defaults.json  [AMAZON DSP]   Business defaults by media type + LOB.
+│   └── amazon_platform_defaults.json        Amazon technical field defaults.
+│                             [AMAZON DSP]   Applied as base layer to all rows.
 │
-├── dv360_mapper.py               [DV360 ONLY]    Parses all 4 inputs → DV360 SDF v9.2
-│                                                 Insertion Orders CSV.
+│  ── INPUT FILTER ───────────────────────────────────────────────────────────
+├── ttd_filter/
+│   └── filter.py             [TTD ONLY]     Pre-processing step. Strips non-TTD
+│                                            rows from all 4 input files before
+│                                            mapping. Downloads cleaned Excel files.
+│                                            Route: /filter
 │
-├── amazon_mapper.py              [AMAZON DSP]    Parses all 4 inputs → Amazon DSP
-│                                                 bulksheet (Orders + 5 line-item
-│                                                 tabs + Creative Associations).
-│
-│  ── DEFAULTS / CONFIG ──────────────────────────────────────────────────────
-├── defaults.json                 [TTD ONLY]      Business defaults by channel + LOB
-│                                                 (Goal Type, Base Bid, Pacing, etc.)
-│
-├── platform_defaults.json        [TTD ONLY]      TTD technical field defaults
-│                                                 (applied as base layer to all rows)
-│
-├── amazon_defaults.json          [AMAZON DSP]    Amazon business defaults by channel + LOB
-│                                                 (Goal KPI, Supply Source, Bid amounts)
-│
-├── amazon_platform_defaults.json [AMAZON DSP]    Amazon technical field defaults
-│                                                 (applied as base layer to all rows)
-│
-│  ── REFERENCE ──────────────────────────────────────────────────────────────
-├── MAPPING_REFERENCE.md          [TTD ONLY]      Human-readable field mapping guide.
-│                                                 Served at /mapping in the web app.
-│
-├── requirements.txt              [ALL PLATFORMS] Python dependencies
-│
-│  ── UI TEMPLATES ──────────────────────────────────────────────────────────
+│  ── UI TEMPLATES ───────────────────────────────────────────────────────────
 ├── templates/
-│   ├── index.html                [TTD + DV360]   Main upload UI — file inputs,
-│   │                                             generate + export buttons
-│   ├── filter.html               [TTD ONLY]      Input filter UI — strips non-TTD
-│   │                                             rows before processing
-│   └── knowledge.html            [TTD ONLY]      Knowledge base viewer — shows
-│                                                 loaded defaults and feedback rules
+│   ├── index.html            Main upload UI — file inputs, platform tabs,
+│   │                         generate + export buttons.
+│   ├── filter.html           TTD input filter UI.
+│   └── knowledge.html        Displays loaded defaults and saved feedback rules.
+│                             Route: /knowledge
 │
-│  ── TTD INPUT FILTER ───────────────────────────────────────────────────────
-└── ttd_filter/
-    ├── __init__.py               [TTD ONLY]      Package init
-    └── filter.py                 [TTD ONLY]      Strips non-TTD rows from all 4 input
-                                                  Excel files before mapping. Outputs
-                                                  both cleaned Excel + filtered JSON.
+│  ── REFERENCE & CONFIG ─────────────────────────────────────────────────────
+├── MAPPING_REFERENCE.md      [TTD ONLY]     Field-by-field mapping guide.
+│                                            Rendered in the app at /mapping.
+├── requirements.txt          Python dependencies.
+└── pyproject.toml            Package config — makes campaign_builder/
+                              pip-installable as campaign-builder.
 ```
+
+---
+
+## Routes
+
+| Method | Route | Platform | What it does |
+|---|---|---|---|
+| GET | `/` | All | Main upload UI |
+| POST | `/generate?mode=ai` | TTD | Map inputs → TTD data using Claude AI |
+| POST | `/generate?mode=rules` | TTD | Map inputs → TTD data using rule-based mapper |
+| POST | `/revise` | TTD | Re-run Claude with a correction; saves rule to feedback |
+| POST | `/export` | TTD | Write TTD data into Excel bulk upload template |
+| POST | `/generate/dv360` | DV360 | Map inputs → DV360 Insertion Orders |
+| POST | `/export/dv360` | DV360 | Write DV360 data as SDF v9.2 CSV |
+| POST | `/generate/amazon` | Amazon DSP | Map inputs → Amazon DSP bulksheet data |
+| POST | `/export/amazon` | Amazon DSP | Write Amazon data as multi-tab Excel |
+| GET | `/filter` | TTD | Input filter UI |
+| POST | `/filter/run` | TTD | Strip non-TTD rows from input files |
+| GET | `/knowledge` | TTD | View loaded defaults + saved feedback rules |
+| GET | `/mapping` | TTD | Render MAPPING_REFERENCE.md in browser |
 
 ---
 
 ## How It Works
 
 ```
-User uploads 4 Excel files
-        │
-        ▼
-[Optional] TTD Filter (/filter)
-  → Strips rows where DSP ≠ TTD
-  → Downloads cleaned Excel files
-        │
-        ▼
-Generate endpoint (/generate or /generate/dv360)
-  → Reads Excel → dict via openpyxl
-  → Runs platform mapper (TTD: Claude AI + rule-based; DV360: rule-based)
-  → Returns JSON preview of bulk upload data
-        │
-        ▼
-User reviews, optionally revises (/revise)
-  → Claude re-maps with correction
-  → Correction saved as a feedback rule for future campaigns
-        │
-        ▼
-Export (/export or /export/dv360)
-  → Writes mapped data into the TTD Excel template or DV360 CSV
-  → Browser downloads the file
+You upload 4 Excel files:
+  Media Brief · Media Plan · Audience Matrix · Trafficking Sheet
+          │
+          ▼
+  [Optional] /filter
+  Strips rows where DSP ≠ TTD.
+  Download the cleaned files before uploading to /generate.
+          │
+          ▼
+  /generate  (or /generate/dv360 or /generate/amazon)
+  Reads Excel → structured dict → runs the platform mapper.
+  TTD: mode=ai uses Claude; mode=rules uses rule-based mapper.
+  Returns a JSON preview of the mapped data.
+          │
+          ▼
+  [TTD only] /revise
+  You flag an issue in the preview → Claude re-maps with the correction.
+  The correction is saved as a feedback rule and applied to future campaigns.
+          │
+          ▼
+  /export  (or /export/dv360 or /export/amazon)
+  Writes the mapped data into the correct file format.
+  Browser downloads the file — ready to upload into the DSP.
 ```
 
 ---
 
-## Defaults Priority (TTD)
+## Defaults System (TTD + Amazon)
 
-Applied most-specific-wins:
+Defaults fill in fields that don't come from the source documents (bid amounts, goal types, pacing, etc.). They are applied in most-specific-wins order:
 
-1. `platform_defaults.json` — TTD technical fields (base layer)
-2. `global` in `defaults.json` — applies to everything
-3. `by_channel` — applies when channel is known (CTV, OLV, Display, etc.)
-4. `by_lob` — applies when Line of Business is known
-5. `by_lob_and_channel` — most specific, overrides all others
+```
+ttd_platform_defaults.json    ← base layer (TTD technical fields)
+       ↓
+global                        ← applies to everything
+       ↓
+by_channel                    ← applies when channel is known (CTV, OLV, Display…)
+       ↓
+by_lob                        ← applies when Line of Business is known
+       ↓
+by_lob_and_channel            ← most specific, overrides all others
+```
+
+Edit `campaign_builder/ttd_defaults.json` to change business defaults. Edit `campaign_builder/ttd_platform_defaults.json` to change TTD account-level technical fields. Amazon follows the same pattern with `amazon_defaults.json` and `amazon_platform_defaults.json`.
 
 ---
 
@@ -124,8 +155,10 @@ uvicorn app:app --reload
 # Open http://localhost:8000
 ```
 
+Requires a TTD bulk upload template at `~/Downloads/TTD BULKSHEET.xlsx` for the `/export` route. The template must match the sheet names in `app.py`.
+
 ---
 
 ## Related Repo
 
-`agentic-campaign-builder/` — future-state multi-agent version of this tool that calls DSP APIs directly instead of producing bulk upload files.
+[`agentic-campaign-builder`](https://github.com/intothecheynet/Agentic-Campaign-Builder---Future-State) — future-state version. Uses this repo's `campaign_builder` package as a dependency and builds campaigns by calling DSP APIs directly instead of producing download files.
